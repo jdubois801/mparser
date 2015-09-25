@@ -17,139 +17,139 @@ public interface FooParserConstants {
   /** RegularExpression Id. */
   int COMMENT = 3;
   /** RegularExpression Id. */
-  int NAME = 4;
+  int LETTER = 4;
   /** RegularExpression Id. */
-  int LETTER = 5;
+  int DIGIT = 5;
   /** RegularExpression Id. */
-  int DIGIT = 6;
+  int EXTTEXT = 6;
   /** RegularExpression Id. */
-  int EXTTEXT = 7;
+  int BREAK = 7;
   /** RegularExpression Id. */
-  int BREAK = 8;
+  int CLOSE = 8;
   /** RegularExpression Id. */
-  int CLOSE = 9;
+  int DO = 9;
   /** RegularExpression Id. */
-  int DO = 10;
+  int ELSE = 10;
   /** RegularExpression Id. */
-  int ELSE = 11;
+  int FOR = 11;
   /** RegularExpression Id. */
-  int FOR = 12;
+  int GOTO = 12;
   /** RegularExpression Id. */
-  int GOTO = 13;
+  int HALT = 13;
   /** RegularExpression Id. */
-  int HALT = 14;
+  int IF = 14;
   /** RegularExpression Id. */
-  int IF = 15;
+  int JOB = 15;
   /** RegularExpression Id. */
-  int JOB = 16;
+  int KILL = 16;
   /** RegularExpression Id. */
-  int KILL = 17;
+  int LOCK = 17;
   /** RegularExpression Id. */
-  int LOCK = 18;
+  int MERGE = 18;
   /** RegularExpression Id. */
-  int MERGE = 19;
+  int NEW = 19;
   /** RegularExpression Id. */
-  int NEW = 20;
+  int OPEN = 20;
   /** RegularExpression Id. */
-  int OPEN = 21;
+  int QUIT = 21;
   /** RegularExpression Id. */
-  int QUIT = 22;
+  int READ = 22;
   /** RegularExpression Id. */
-  int READ = 23;
+  int SET = 23;
   /** RegularExpression Id. */
-  int SET = 24;
+  int USE = 24;
   /** RegularExpression Id. */
-  int USE = 25;
+  int VIEW = 25;
   /** RegularExpression Id. */
-  int VIEW = 26;
+  int WRITE = 26;
   /** RegularExpression Id. */
-  int WRITE = 27;
+  int XECUTE = 27;
   /** RegularExpression Id. */
-  int XECUTE = 28;
+  int F_ASCII = 28;
   /** RegularExpression Id. */
-  int F_ASCII = 29;
+  int F_CHAR = 29;
   /** RegularExpression Id. */
-  int F_CHAR = 30;
+  int F_DATA = 30;
   /** RegularExpression Id. */
-  int F_DATA = 31;
+  int F_EXTRACT = 31;
   /** RegularExpression Id. */
-  int F_EXTRACT = 32;
+  int F_FIND = 32;
   /** RegularExpression Id. */
-  int F_FIND = 33;
+  int F_FNUMBER = 33;
   /** RegularExpression Id. */
-  int F_FNUMBER = 34;
+  int F_GET = 34;
   /** RegularExpression Id. */
-  int F_GET = 35;
+  int F_JUSTIFY = 35;
   /** RegularExpression Id. */
-  int F_JUSTIFY = 36;
+  int F_LENGTH = 36;
   /** RegularExpression Id. */
-  int F_LENGTH = 37;
+  int F_NAME = 37;
   /** RegularExpression Id. */
-  int F_NAME = 38;
+  int F_ORDER = 38;
   /** RegularExpression Id. */
-  int F_ORDER = 39;
+  int F_PIECE = 39;
   /** RegularExpression Id. */
-  int F_PIECE = 40;
+  int F_QLENGTH = 40;
   /** RegularExpression Id. */
-  int F_QLENGTH = 41;
+  int F_QSUBSCRIPT = 41;
   /** RegularExpression Id. */
-  int F_QSUBSCRIPT = 42;
+  int F_QUERY = 42;
   /** RegularExpression Id. */
-  int F_QUERY = 43;
+  int F_RANDOM = 43;
   /** RegularExpression Id. */
-  int F_RANDOM = 44;
+  int F_REVERSE = 44;
   /** RegularExpression Id. */
-  int F_REVERSE = 45;
+  int F_SELECT = 45;
   /** RegularExpression Id. */
-  int F_SELECT = 46;
+  int F_STACK = 46;
   /** RegularExpression Id. */
-  int F_STACK = 47;
+  int F_TEXT = 47;
   /** RegularExpression Id. */
-  int F_TEXT = 48;
+  int F_TRANSLATE = 48;
   /** RegularExpression Id. */
-  int F_TRANSLATE = 49;
+  int F_VIEW = 49;
   /** RegularExpression Id. */
-  int F_VIEW = 50;
+  int V_DEVICE = 50;
   /** RegularExpression Id. */
-  int V_DEVICE = 51;
+  int V_ECODE = 51;
   /** RegularExpression Id. */
-  int V_ECODE = 52;
+  int V_ESTACK = 52;
   /** RegularExpression Id. */
-  int V_ESTACK = 53;
+  int V_HORLOG = 53;
   /** RegularExpression Id. */
-  int V_HORLOG = 54;
+  int V_IO = 54;
   /** RegularExpression Id. */
-  int V_IO = 55;
+  int V_JOB = 55;
   /** RegularExpression Id. */
-  int V_JOB = 56;
+  int V_KEY = 56;
   /** RegularExpression Id. */
-  int V_KEY = 57;
+  int V_PRINCIPAL = 57;
   /** RegularExpression Id. */
-  int V_PRINCIPAL = 58;
+  int V_QUIT = 58;
   /** RegularExpression Id. */
-  int V_QUIT = 59;
+  int V_REFERENCE = 59;
   /** RegularExpression Id. */
-  int V_REFERENCE = 60;
+  int V_STORAGE = 60;
   /** RegularExpression Id. */
-  int V_STORAGE = 61;
+  int V_SYSTEM = 61;
   /** RegularExpression Id. */
-  int V_SYSTEM = 62;
+  int V_TEST = 62;
   /** RegularExpression Id. */
-  int V_TEST = 63;
+  int V_X = 63;
   /** RegularExpression Id. */
-  int V_X = 64;
+  int V_Y = 64;
   /** RegularExpression Id. */
-  int V_Y = 65;
+  int SV_GLOBAL = 65;
   /** RegularExpression Id. */
-  int SV_GLOBAL = 66;
+  int SV_JOB = 66;
   /** RegularExpression Id. */
-  int SV_JOB = 67;
+  int SV_LOCK = 67;
   /** RegularExpression Id. */
-  int SV_LOCK = 68;
+  int SV_ROUTINE = 68;
   /** RegularExpression Id. */
-  int SV_ROUTINE = 69;
+  int SV_SYSTEM = 69;
   /** RegularExpression Id. */
-  int SV_SYSTEM = 70;
+  int NAME = 70;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -160,7 +160,6 @@ public interface FooParserConstants {
     "\"\\r\\n\"",
     "\"\\r\\f\"",
     "<COMMENT>",
-    "<NAME>",
     "<LETTER>",
     "<DIGIT>",
     "<EXTTEXT>",
@@ -227,6 +226,7 @@ public interface FooParserConstants {
     "<SV_LOCK>",
     "<SV_ROUTINE>",
     "<SV_SYSTEM>",
+    "<NAME>",
     "\" \"",
     "\".\"",
     "\"(\"",

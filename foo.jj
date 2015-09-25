@@ -1,6 +1,6 @@
 
 options {
-	LOOKAHEAD = 3;
+	LOOKAHEAD = 4;
 	STATIC = false;
 }
 
@@ -8,9 +8,15 @@ PARSER_BEGIN(FooParser)
 package com;
 import java.io.StringBufferInputStream;
 public class FooParser {
-
+	public static final String TEST_DATA = 
+	"XXROUTINE ;c\r\n"+
+	" ;comment\r\n"+
+	" B \r\n"+
+	" C \r\n"+
+	" Q \r\n"
+	;
 	public static void main(String[] args) {
-		FooParser fp = new FooParser(new StringBufferInputStream("XXROUTINE ;c\r\n ;c\r\n B\r\n"));
+		FooParser fp = new FooParser(new StringBufferInputStream(TEST_DATA));
 		System.err.println("fp = " + fp);
 		
 		try {
@@ -30,7 +36,6 @@ TOKEN : {
    < EOL : "\r\n" >
  | < EOR : "\r\f" >
  | < COMMENT : ";" (~["\r"])* >
- | < NAME : ("%"|<LETTER>)(<LETTER>|<DIGIT>)* >
  | < #LETTER : ["a"-"z","A"-"Z"] >
  | < DIGIT : ["0"-"9"] >
  | <EXTTEXT : "(" (~[")"])* ")" >
@@ -115,6 +120,11 @@ TOKEN : {
   | <SV_SYSTEM : "^$S"("YSTEM")? >
 }
 
+// identifiers
+TOKEN : {
+   < NAME : ("%"|<LETTER>)(<LETTER>|<DIGIT>)* >
+}
+
 
 void routine() : {}
 {
@@ -157,7 +167,7 @@ void formalline() : {}
 	label() formallist() (" ")+ linebody()
 }
 
-void linebody() : {}
+void linebody() : {System.err.println("linebody");}
 {
 	commandscomment() 
 	| commandsextsyntax()
@@ -176,12 +186,12 @@ void formallistitem() : {}
 
 void commandscomment() : {System.err.println("commandscomment");}
 {
-	commands() ((" ")* <COMMENT> )? <EOL>
+	commands() (" ")* (<COMMENT> | extsyntax())? <EOL>
 }
 
 void commandsextsyntax() : {}
 {
-	( commands() (" ")* )? extsyntax() <EOL>
+	extsyntax() <EOL>
 }
 
 void commands() : {System.err.println("commands");}
@@ -189,13 +199,139 @@ void commands() : {System.err.println("commands");}
 	command() ( (" ")* command() )*
 }
 
-void command() : {System.err.println("break");//***
+void command() : {
 }
 {
-	<BREAK>
+	breakcommand()
+	| closecommand()
+	| docommand()
+	| elsecommand()
+	| forcommand()
+	| gotocommand()
+	| haltcommand()
+	| ifcommand()
+	| jobcommand()
+	| killcommand()
+	| lockcommand()
+	| mergecommand()
+	| newcommand()
+	| opencommand()
+	| quitcommand()
+	| readcommand()
+	| setcommand()
+	| usecommand()
+	| viewcommand()
+	| writecommand()
+	| xecutecommand()
 }
 
 void extsyntax() : {}  
 {
 	"&SQL" <EXTTEXT> 
+}
+
+void breakcommand() : {}
+{
+	<BREAK>
+}
+
+void closecommand() : {}
+{
+	<CLOSE>
+}
+
+void docommand() : {}
+{
+	<DO>
+}
+
+void elsecommand() : {}
+{
+	<ELSE>
+}
+
+void forcommand() : {}
+{
+	<FOR>
+}
+
+void gotocommand() : {}
+{
+	<GOTO>
+}
+
+void haltcommand() : {}
+{
+	// deal with <HANG> also
+	<HALT>
+}
+
+void ifcommand() : {}
+{
+	<IF>
+}
+
+void jobcommand() : {}
+{
+	<JOB>
+}
+
+void killcommand() : {}
+{
+	<KILL>
+}
+
+void lockcommand() : {}
+{
+	<LOCK>
+}
+
+void mergecommand() : {}
+{
+	<MERGE>
+}
+
+void newcommand() : {}
+{
+	<NEW>
+}
+
+void opencommand() : {}
+{
+	<OPEN>
+}
+
+void quitcommand() : {}
+{
+	<QUIT>
+}
+
+void readcommand() : {}
+{
+	<READ>
+}
+
+void setcommand() : {}
+{
+	<SET>
+}
+
+void usecommand() : {}
+{
+	<USE>
+}
+
+void viewcommand() : {}
+{
+	<VIEW>
+}
+
+void writecommand() : {}
+{
+	<WRITE>
+}
+
+void xecutecommand() : {}
+{
+	<XECUTE>
 }
