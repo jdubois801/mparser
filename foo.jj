@@ -1,0 +1,201 @@
+
+options {
+	LOOKAHEAD = 3;
+	STATIC = false;
+}
+
+PARSER_BEGIN(FooParser)
+package com;
+import java.io.StringBufferInputStream;
+public class FooParser {
+
+	public static void main(String[] args) {
+		FooParser fp = new FooParser(new StringBufferInputStream("XXROUTINE ;c\r\n ;c\r\n B\r\n"));
+		System.err.println("fp = " + fp);
+		
+		try {
+			fp.routine();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println("accept");
+	}
+}
+
+PARSER_END(FooParser)
+
+// lexical tokens
+TOKEN : {
+   < EOL : "\r\n" >
+ | < EOR : "\r\f" >
+ | < COMMENT : ";" (~["\r"])* >
+ | < NAME : ("%"|<LETTER>)(<LETTER>|<DIGIT>)* >
+ | < #LETTER : ["a"-"z","A"-"Z"] >
+ | < DIGIT : ["0"-"9"] >
+ | <EXTTEXT : "(" (~[")"])* ")" >
+}
+
+// basic commands
+TOKEN : {
+   < BREAK : "B"("REAK")? >
+ | < CLOSE : "C"("LOSE")? >
+ | < DO : "D"("O")? >
+ | < ELSE : "E"("LSE")? >
+ | < FOR : "F"("OR")? >
+ | < GOTO : "G"("OTO")? >
+ | < HALT: "H"("ALT"|"ANG")?>
+ | < IF : "I"("F")? >
+ | < JOB : "J"("OB")? >
+ | < KILL : "K"("ILL")? >
+ | < LOCK : "L"("OCK")? >
+ | < MERGE : "M"("ERGE")? >
+ | < NEW : "N"("EW")? >
+ | < OPEN : "O"("PEN")? >
+ | < QUIT : "Q"("UIT")? >
+ | < READ : "R"("EAD")? >
+ | < SET : "S"("ET")? >
+ | < USE : "U"("SE")? >
+ | < VIEW : "V"("IEW")? >
+ | < WRITE : "W"("RITE")? >
+ | < XECUTE : "X"("ECUTE")? >
+}
+
+// built-in functions
+TOKEN : {
+   < F_ASCII : "$A"("SCII")? >
+ | < F_CHAR : "$C"("HAR")? >
+ | < F_DATA : "$D"("ATA")? >
+ | < F_EXTRACT : "$E"("XTRACT")? >
+ | < F_FIND : "$F"("IND")? >
+ | < F_FNUMBER : "$FN"("UMBER")? >
+ | < F_GET : "$G"("ET")? >
+ | < F_JUSTIFY : "$J"("USTIFY")? >
+ | < F_LENGTH : "$L"("ENGTH")? >
+ | < F_NAME : "$NA"("ME")? >
+ | < F_ORDER : "$O"("RDER")? >
+ | < F_PIECE : "$P"("IECE")? >
+ | < F_QLENGTH : "$QL"("ENGTH")? >
+ | < F_QSUBSCRIPT : "$QS"("UBSCRIPT")? >
+ | < F_QUERY : "$Q"("UERY")? >
+ | < F_RANDOM : "$R"("ANDOM")? >
+ | < F_REVERSE : "$RE"("VERSE")? >
+ | < F_SELECT : "$S"("ELECT")? >
+ | < F_STACK : "$ST"("ACK")? >
+ | < F_TEXT : "$T"("EXT")? >
+ | < F_TRANSLATE : "$TR"("ANSLATE")? >
+ | < F_VIEW : "$V"("IEW")? >
+}
+
+// built-in variables
+TOKEN : {
+    <V_DEVICE : "$D"("EVICE")? >
+  | <V_ECODE : "$EC"("ODE")? >
+  | <V_ESTACK : "$ES"("TACK")? >
+  | <V_HORLOG : "$H"("ORLOG")? >
+  | <V_IO : "$I"("O")? >
+  | <V_JOB : "$J"("OB")? >
+  | <V_KEY : "$K"("EY")? >
+  | <V_PRINCIPAL : "$P"("RINCIPAL")? >
+  | <V_QUIT : "$Q"("UIT")? >
+  | <V_REFERENCE : "$R"("EFERENCE")? >
+  | <V_STORAGE : "$S"("TORAGE")? >
+  | <V_SYSTEM : "$SY"("STEM")? >
+  | <V_TEST : "$T"("EST")? >
+  | <V_X : "$X" >
+  | <V_Y : "$Y" >
+}
+
+// structured system variables
+TOKEN : {
+    <SV_GLOBAL : "^$G"("LOBAL")? >
+  | <SV_JOB : "^$J"("OB")? >
+  | <SV_LOCK : "^$L"("OCK")? >
+  | <SV_ROUTINE : "^$R"("OUTINE")? >
+  | <SV_SYSTEM : "^$S"("YSTEM")? >
+}
+
+
+void routine() : {}
+{
+	routinehead()
+	routinebody()
+}
+
+void routinehead() : {}
+{
+	<NAME> ( (" ")* <COMMENT>)? <EOL>
+}
+
+void routinebody() : {}
+{
+	( line() )* ( <EOR> | <EOF> )
+}
+
+void line() : {}
+{
+	levelline() | formalline() 
+}
+
+void levelline() : {}
+{
+	( label() )? " " ( li() " " )* linebody()
+}
+
+void label() : {}
+{
+	( <NAME> ) | ( (<DIGIT>)+ )
+}
+
+void li() : {}
+{
+	"."
+}
+
+void formalline() : {}
+{
+	label() formallist() (" ")+ linebody()
+}
+
+void linebody() : {}
+{
+	commandscomment() 
+	| commandsextsyntax()
+	| ( <COMMENT> <EOL> )
+}
+
+void formallist() : {}
+{
+	"(" (<NAME> ( formallistitem() )* )? ")"
+}
+
+void formallistitem() : {}
+{
+	"," <NAME>
+}
+
+void commandscomment() : {System.err.println("commandscomment");}
+{
+	commands() ((" ")* <COMMENT> )? <EOL>
+}
+
+void commandsextsyntax() : {}
+{
+	( commands() (" ")* )? extsyntax() <EOL>
+}
+
+void commands() : {System.err.println("commands");}
+{
+	command() ( (" ")* command() )*
+}
+
+void command() : {System.err.println("break");//***
+}
+{
+	<BREAK>
+}
+
+void extsyntax() : {}  
+{
+	"&SQL" <EXTTEXT> 
+}
