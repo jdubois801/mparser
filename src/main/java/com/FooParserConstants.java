@@ -150,6 +150,10 @@ public interface FooParserConstants {
   int SV_SYSTEM = 69;
   /** RegularExpression Id. */
   int NAME = 70;
+  /** RegularExpression Id. */
+  int NUMBER = 71;
+  /** RegularExpression Id. */
+  int STRLIT = 72;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -227,12 +231,17 @@ public interface FooParserConstants {
     "<SV_ROUTINE>",
     "<SV_SYSTEM>",
     "<NAME>",
+    "<NUMBER>",
+    "<STRLIT>",
     "\" \"",
     "\".\"",
     "\"(\"",
     "\")\"",
     "\",\"",
     "\"&SQL\"",
+    "\":\"",
+    "\"@\"",
+    "\"^\"",
   };
 
 }

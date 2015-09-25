@@ -1,19 +1,21 @@
 
 options {
-	LOOKAHEAD = 4;
+	LOOKAHEAD = 3;
 	STATIC = false;
 }
 
 PARSER_BEGIN(FooParser)
 package com;
 import java.io.StringBufferInputStream;
+import com.ast.*;
+
 public class FooParser {
 	public static final String TEST_DATA = 
 	"XXROUTINE ;c\r\n"+
 	" ;comment\r\n"+
 	" B \r\n"+
 	" C \r\n"+
-	" Q \r\n"
+	" Q:1 \r\n"
 	;
 	public static void main(String[] args) {
 		FooParser fp = new FooParser(new StringBufferInputStream(TEST_DATA));
@@ -122,7 +124,9 @@ TOKEN : {
 
 // identifiers
 TOKEN : {
-   < NAME : ("%"|<LETTER>)(<LETTER>|<DIGIT>)* >
+   < NAME : ("%"|<LETTER>)(<LETTER>|<DIGIT>)* >  // not strictly correct since "%" isn't a valid name
+  | <NUMBER : (<DIGIT>)+ > 
+  | <STRLIT : "\"" (["a"-"z"])* "\"" > 
 }
 
 
@@ -135,11 +139,17 @@ void routine() : {}
 void routinehead() : {}
 {
 	<NAME> ( (" ")* <COMMENT>)? <EOL>
+	{
+		System.out.println("routinehead()");
+	}
 }
 
 void routinebody() : {}
 {
 	( line() )* ( <EOR> | <EOF> )
+	{
+		System.out.println("routinebody()");
+	}
 }
 
 void line() : {}
@@ -150,24 +160,36 @@ void line() : {}
 void levelline() : {}
 {
 	( label() )? " " ( li() " " )* linebody()
+	{
+		System.out.println("levelline()");
+	}
 }
 
 void label() : {}
 {
 	( <NAME> ) | ( (<DIGIT>)+ )
+	{
+		System.out.println("label()");
+	}
 }
 
 void li() : {}
 {
 	"."
+	{
+		System.out.println("li()");
+	}
 }
 
 void formalline() : {}
 {
 	label() formallist() (" ")+ linebody()
+	{
+		System.out.println("formalline()");
+	}
 }
 
-void linebody() : {System.err.println("linebody");}
+void linebody() : {}
 {
 	commandscomment() 
 	| commandsextsyntax()
@@ -177,29 +199,44 @@ void linebody() : {System.err.println("linebody");}
 void formallist() : {}
 {
 	"(" (<NAME> ( formallistitem() )* )? ")"
+	{
+		System.out.println("formallist()");
+	}
 }
 
 void formallistitem() : {}
 {
 	"," <NAME>
+	{
+		System.out.println("formallistitem()");
+	}
 }
 
-void commandscomment() : {System.err.println("commandscomment");}
+void commandscomment() : {}
 {
 	commands() (" ")* (<COMMENT> | extsyntax())? <EOL>
+	{
+		System.out.println("commandscomment()");
+	}
 }
 
 void commandsextsyntax() : {}
 {
 	extsyntax() <EOL>
+	{
+		System.out.println("commandsextsyntax()");
+	}
 }
 
-void commands() : {System.err.println("commands");}
+void commands() : {}
 {
 	command() ( (" ")* command() )*
+	{
+		System.out.println("commands()");
+	}
 }
 
-void command() : {
+void command() : { System.err.println("command()");
 }
 {
 	breakcommand()
@@ -228,110 +265,284 @@ void command() : {
 void extsyntax() : {}  
 {
 	"&SQL" <EXTTEXT> 
+	{
+		System.out.println("extsyntax()");
+	}
 }
 
 void breakcommand() : {}
 {
 	<BREAK>
+	{
+// TODO: implement
+		AstNode node = new BreakCommand();
+		System.out.println("breakcommand()");
+	}
 }
 
 void closecommand() : {}
 {
 	<CLOSE>
+	{
+// TODO: implement
+		AstNode node = new CloseCommand();
+		System.out.println("closecommand()");
+	}
 }
 
 void docommand() : {}
 {
 	<DO>
+	{
+// TODO: implement
+		AstNode node = new DoCommand();
+		System.out.println("docommand()");
+	}
 }
 
 void elsecommand() : {}
 {
 	<ELSE>
+	{
+// TODO: implement
+		AstNode node = new ElseCommand();
+		System.out.println("elsecommand()");
+	}
 }
 
 void forcommand() : {}
 {
 	<FOR>
+	{
+// TODO: implement
+		AstNode node = new ForCommand();
+		System.out.println("forcommand()");
+	}
 }
 
 void gotocommand() : {}
 {
 	<GOTO>
+	{
+// TODO: implement
+		AstNode node = new GotoCommand();
+		System.out.println("gotocommand()");
+	}
 }
 
 void haltcommand() : {}
 {
 	// deal with <HANG> also
 	<HALT>
+	{
+// TODO: implement
+		AstNode node = new HaltCommand();
+		System.out.println("haltcommand()");
+	}
 }
 
 void ifcommand() : {}
 {
 	<IF>
+	{
+// TODO: implement
+		AstNode node = new IfCommand();
+		System.out.println("ifcommand()");
+	}
 }
 
 void jobcommand() : {}
 {
 	<JOB>
+	{
+// TODO: implement
+		AstNode node = new JobCommand();
+		System.out.println("jobcommand()");
+	}
 }
 
 void killcommand() : {}
 {
 	<KILL>
+	{
+// TODO: implement
+		AstNode node = new KillCommand();
+		System.out.println("killcommand()");
+	}
 }
 
 void lockcommand() : {}
 {
 	<LOCK>
+	{
+// TODO: implement
+		AstNode node = new LockCommand();
+		System.out.println("lockcommand()");
+	}
 }
 
 void mergecommand() : {}
 {
 	<MERGE>
+	{
+// TODO: implement
+		AstNode node = new MergeCommand();
+		System.out.println("mergecommand()");
+	}
 }
 
 void newcommand() : {}
 {
 	<NEW>
+	{
+// TODO: implement
+		AstNode node = new NewCommand();
+		System.out.println("newcommand()");
+	}
 }
 
 void opencommand() : {}
 {
 	<OPEN>
+	{
+// TODO: implement
+		AstNode node = new OpenCommand();
+		System.out.println("opencommand()");
+	}
 }
 
-void quitcommand() : {}
+void quitcommand() : {System.err.println("quitcommand()");}
 {
-	<QUIT>
+	<QUIT> (postcond())?
+	{
+// TODO: implement
+		AstNode node = new QuitCommand();
+		System.out.println("quitcommand()");
+	}
 }
 
 void readcommand() : {}
 {
 	<READ>
+	{
+// TODO: implement
+		AstNode node = new ReadCommand();
+		System.out.println("readcommand()");
+	}
 }
 
 void setcommand() : {}
 {
 	<SET>
+	{
+// TODO: implement
+		AstNode node = new SetCommand();
+		System.out.println("setcommand()");
+	}
 }
 
 void usecommand() : {}
 {
 	<USE>
+	{
+// TODO: implement
+		AstNode node = new UseCommand();
+		System.out.println("usecommand()");
+	}
 }
 
 void viewcommand() : {}
 {
 	<VIEW>
+	{
+// TODO: implement
+		AstNode node = new ViewCommand();
+		System.out.println("viewcommand()");
+	}
 }
 
 void writecommand() : {}
 {
 	<WRITE>
+	{
+// TODO: implement
+		AstNode node = new WriteCommand();
+		System.out.println("writecommand()");
+	}
 }
 
 void xecutecommand() : {}
 {
 	<XECUTE>
+	{
+// TODO: implement
+		AstNode node = new XecuteCommand();
+		System.out.println("xecutecommand()");
+	}
 }
+
+void postcond() : {System.err.println("postcond");}
+{
+	":" tvexpr()
+}
+
+void tvexpr() : {}
+{
+	 expr()
+}
+
+void expr() : {}
+{
+	 expratom() (exprtail())*
+}
+
+void expratom() : {}
+{
+	glvn() | expritem() | "@" expratom()
+}
+
+void exprtail() : {} // TODO
+{
+	 "."
+}
+
+void glvn() : {} 
+{
+	lvn() | gvn () | ssvn() 
+}
+
+void lvn() : {} 
+{
+	<NAME> ( "(" ( exprlist() )? ")" )?
+}
+
+void exprlist() : {}  // TODO
+{
+	expr() ("," expr())* 
+}
+
+void gvn() : {}
+{
+	"^" lvn()
+}
+
+void ssvn() : {}  // TODO
+{
+	 "."
+}
+
+void expritem() : {}  // TODO
+{
+// strlit
+// numlit
+// exfunc
+// exvar 
+// svn
+// function
+// unaryop expratom
+// ( expr )
+
+	<NUMBER> 
+       | <STRLIT>
+}
+
