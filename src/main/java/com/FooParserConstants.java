@@ -19,9 +19,9 @@ public interface FooParserConstants {
   /** RegularExpression Id. */
   int LETTER = 4;
   /** RegularExpression Id. */
-  int DIGIT = 5;
+  int NUMBER = 5;
   /** RegularExpression Id. */
-  int EXTTEXT = 6;
+  int DIGIT = 6;
   /** RegularExpression Id. */
   int BREAK = 7;
   /** RegularExpression Id. */
@@ -151,9 +151,7 @@ public interface FooParserConstants {
   /** RegularExpression Id. */
   int NAME = 70;
   /** RegularExpression Id. */
-  int NUMBER = 71;
-  /** RegularExpression Id. */
-  int STRLIT = 72;
+  int STRLIT = 71;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -165,8 +163,8 @@ public interface FooParserConstants {
     "\"\\r\\f\"",
     "<COMMENT>",
     "<LETTER>",
+    "<NUMBER>",
     "<DIGIT>",
-    "<EXTTEXT>",
     "<BREAK>",
     "<CLOSE>",
     "<DO>",
@@ -231,7 +229,6 @@ public interface FooParserConstants {
     "<SV_ROUTINE>",
     "<SV_SYSTEM>",
     "<NAME>",
-    "<NUMBER>",
     "<STRLIT>",
     "\" \"",
     "\".\"",
@@ -242,6 +239,9 @@ public interface FooParserConstants {
     "\":\"",
     "\"@\"",
     "\"^\"",
+    "\"\\\'\"",
+    "\"+\"",
+    "\"-\"",
   };
 
 }

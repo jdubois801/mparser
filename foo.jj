@@ -1,6 +1,6 @@
 
 options {
-	LOOKAHEAD = 3;
+	LOOKAHEAD = 2;
 	STATIC = false;
 }
 
@@ -15,11 +15,11 @@ public class FooParser {
 	" ;comment\r\n"+
 	" B \r\n"+
 	" C \r\n"+
-	" Q:1 \r\n"
+	" Q:'1 \r\n"
 	;
+
 	public static void main(String[] args) {
 		FooParser fp = new FooParser(new StringBufferInputStream(TEST_DATA));
-		System.err.println("fp = " + fp);
 		
 		try {
 			fp.routine();
@@ -39,8 +39,8 @@ TOKEN : {
  | < EOR : "\r\f" >
  | < COMMENT : ";" (~["\r"])* >
  | < #LETTER : ["a"-"z","A"-"Z"] >
+ | <NUMBER : (<DIGIT>)+ > 
  | < DIGIT : ["0"-"9"] >
- | <EXTTEXT : "(" (~[")"])* ")" >
 }
 
 // basic commands
@@ -125,7 +125,6 @@ TOKEN : {
 // identifiers
 TOKEN : {
    < NAME : ("%"|<LETTER>)(<LETTER>|<DIGIT>)* >  // not strictly correct since "%" isn't a valid name
-  | <NUMBER : (<DIGIT>)+ > 
   | <STRLIT : "\"" (["a"-"z"])* "\"" > 
 }
 
@@ -167,7 +166,7 @@ void levelline() : {}
 
 void label() : {}
 {
-	( <NAME> ) | ( (<DIGIT>)+ )
+	 <NAME> | <NUMBER>
 	{
 		System.out.println("label()");
 	}
@@ -262,9 +261,9 @@ void command() : { System.err.println("command()");
 	| xecutecommand()
 }
 
-void extsyntax() : {}  
+void extsyntax() : {}  // TODO
 {
-	"&SQL" <EXTTEXT> 
+	"&SQL" "(" (".")* ")" 
 	{
 		System.out.println("extsyntax()");
 	}
@@ -272,7 +271,7 @@ void extsyntax() : {}
 
 void breakcommand() : {}
 {
-	<BREAK>
+	<BREAK> ( postcond() )? 
 	{
 // TODO: implement
 		AstNode node = new BreakCommand();
@@ -282,7 +281,7 @@ void breakcommand() : {}
 
 void closecommand() : {}
 {
-	<CLOSE>
+	<CLOSE> ( postcond() )? 
 	{
 // TODO: implement
 		AstNode node = new CloseCommand();
@@ -292,7 +291,7 @@ void closecommand() : {}
 
 void docommand() : {}
 {
-	<DO>
+	<DO> ( postcond() )? 
 	{
 // TODO: implement
 		AstNode node = new DoCommand();
@@ -322,7 +321,7 @@ void forcommand() : {}
 
 void gotocommand() : {}
 {
-	<GOTO>
+	<GOTO> ( postcond() )? 
 	{
 // TODO: implement
 		AstNode node = new GotoCommand();
@@ -333,7 +332,7 @@ void gotocommand() : {}
 void haltcommand() : {}
 {
 	// deal with <HANG> also
-	<HALT>
+	<HALT> ( postcond() )? 
 	{
 // TODO: implement
 		AstNode node = new HaltCommand();
@@ -353,7 +352,7 @@ void ifcommand() : {}
 
 void jobcommand() : {}
 {
-	<JOB>
+	<JOB> ( postcond() )? 
 	{
 // TODO: implement
 		AstNode node = new JobCommand();
@@ -363,7 +362,7 @@ void jobcommand() : {}
 
 void killcommand() : {}
 {
-	<KILL>
+	<KILL> ( postcond() )? 
 	{
 // TODO: implement
 		AstNode node = new KillCommand();
@@ -373,7 +372,7 @@ void killcommand() : {}
 
 void lockcommand() : {}
 {
-	<LOCK>
+	<LOCK> ( postcond() )? 
 	{
 // TODO: implement
 		AstNode node = new LockCommand();
@@ -383,7 +382,7 @@ void lockcommand() : {}
 
 void mergecommand() : {}
 {
-	<MERGE>
+	<MERGE> ( postcond() )? 
 	{
 // TODO: implement
 		AstNode node = new MergeCommand();
@@ -393,7 +392,7 @@ void mergecommand() : {}
 
 void newcommand() : {}
 {
-	<NEW>
+	<NEW> ( postcond() )? 
 	{
 // TODO: implement
 		AstNode node = new NewCommand();
@@ -403,7 +402,7 @@ void newcommand() : {}
 
 void opencommand() : {}
 {
-	<OPEN>
+	<OPEN> ( postcond() )? 
 	{
 // TODO: implement
 		AstNode node = new OpenCommand();
@@ -411,19 +410,19 @@ void opencommand() : {}
 	}
 }
 
-void quitcommand() : {System.err.println("quitcommand()");}
+void quitcommand() : {System.err.println("quitcommand(1)");}
 {
-	<QUIT> (postcond())?
+	<QUIT> ( postcond() )? 
 	{
 // TODO: implement
 		AstNode node = new QuitCommand();
-		System.out.println("quitcommand()");
+		System.out.println("quitcommand(2)");
 	}
 }
 
 void readcommand() : {}
 {
-	<READ>
+	<READ> ( postcond() )? 
 	{
 // TODO: implement
 		AstNode node = new ReadCommand();
@@ -433,7 +432,7 @@ void readcommand() : {}
 
 void setcommand() : {}
 {
-	<SET>
+	<SET> ( postcond() )? 
 	{
 // TODO: implement
 		AstNode node = new SetCommand();
@@ -443,7 +442,7 @@ void setcommand() : {}
 
 void usecommand() : {}
 {
-	<USE>
+	<USE> ( postcond() )? 
 	{
 // TODO: implement
 		AstNode node = new UseCommand();
@@ -453,7 +452,7 @@ void usecommand() : {}
 
 void viewcommand() : {}
 {
-	<VIEW>
+	<VIEW> ( postcond() )? 
 	{
 // TODO: implement
 		AstNode node = new ViewCommand();
@@ -463,7 +462,7 @@ void viewcommand() : {}
 
 void writecommand() : {}
 {
-	<WRITE>
+	<WRITE> ( postcond() )? 
 	{
 // TODO: implement
 		AstNode node = new WriteCommand();
@@ -473,7 +472,7 @@ void writecommand() : {}
 
 void xecutecommand() : {}
 {
-	<XECUTE>
+	<XECUTE> ( postcond() )? 
 	{
 // TODO: implement
 		AstNode node = new XecuteCommand();
@@ -491,14 +490,16 @@ void tvexpr() : {}
 	 expr()
 }
 
-void expr() : {}
+void expr() : {System.err.println("expr");}
 {
 	 expratom() (exprtail())*
 }
 
-void expratom() : {}
+void expratom() : {System.err.println("expratom");}
 {
-	glvn() | expritem() | "@" expratom()
+	glvn() 
+	| expritem() 
+	| "@" expratom()
 }
 
 void exprtail() : {} // TODO
@@ -544,5 +545,11 @@ void expritem() : {}  // TODO
 
 	<NUMBER> 
        | <STRLIT>
+       | unaryop() expratom()
+       | "(" expr() ")"
 }
 
+void unaryop() : {}
+{
+	"\'" | "+" | "-"
+}
