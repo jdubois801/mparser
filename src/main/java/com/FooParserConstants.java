@@ -139,19 +139,21 @@ public interface FooParserConstants {
   /** RegularExpression Id. */
   int V_Y = 64;
   /** RegularExpression Id. */
-  int SV_GLOBAL = 65;
+  int SV_CHARACTER = 65;
   /** RegularExpression Id. */
-  int SV_JOB = 66;
+  int SV_DEVICE = 66;
   /** RegularExpression Id. */
-  int SV_LOCK = 67;
+  int SV_GLOBAL = 67;
   /** RegularExpression Id. */
-  int SV_ROUTINE = 68;
+  int SV_JOB = 68;
   /** RegularExpression Id. */
-  int SV_SYSTEM = 69;
+  int SV_LOCK = 69;
   /** RegularExpression Id. */
-  int NAME = 70;
+  int SV_ROUTINE = 70;
   /** RegularExpression Id. */
-  int STRLIT = 71;
+  int NAME = 71;
+  /** RegularExpression Id. */
+  int STRLIT = 72;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -223,11 +225,12 @@ public interface FooParserConstants {
     "<V_TEST>",
     "\"$X\"",
     "\"$Y\"",
+    "<SV_CHARACTER>",
+    "<SV_DEVICE>",
     "<SV_GLOBAL>",
     "<SV_JOB>",
     "<SV_LOCK>",
     "<SV_ROUTINE>",
-    "<SV_SYSTEM>",
     "<NAME>",
     "<STRLIT>",
     "\" \"",
@@ -236,12 +239,27 @@ public interface FooParserConstants {
     "\")\"",
     "\",\"",
     "\"&SQL\"",
+    "\"=\"",
     "\":\"",
     "\"@\"",
-    "\"^\"",
     "\"\\\'\"",
+    "\"?\"",
+    "\"^\"",
     "\"+\"",
     "\"-\"",
+    "\"_\"",
+    "\"*\"",
+    "\"/\"",
+    "\"#\"",
+    "\"\\\\\"",
+    "\"**\"",
+    "\"<\"",
+    "\">\"",
+    "\"]\"",
+    "\"[\"",
+    "\"]]\"",
+    "\"&\"",
+    "\"!\"",
   };
 
 }

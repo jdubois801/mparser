@@ -13,9 +13,13 @@ public class FooParser {
 	public static final String TEST_DATA = 
 	"XXROUTINE ;c\r\n"+
 	" ;comment\r\n"+
-	" B \r\n"+
-	" C \r\n"+
-	" Q:'1 \r\n"
+//	" B \r\n"+
+//	" C \r\n"+
+//	" Q:'(1+2!3_4+5-6*7/8#9\\10**11=12<13>14]15[16]]17&18!19+\"20\") \r\n"
+//	" F \r\n"+
+//	" F name=1:2 Q:0 \r\n"+
+//	" K:name @name,name2,^aa,(a,b),p(3),^q(3,4),^$CHARACTER \r\n"
+	" I 1,\"false\",@foo,(1+name),p(3) \r\n"
 	;
 
 	public static void main(String[] args) {
@@ -115,11 +119,14 @@ TOKEN : {
 
 // structured system variables
 TOKEN : {
-    <SV_GLOBAL : "^$G"("LOBAL")? >
-  | <SV_JOB : "^$J"("OB")? >
-  | <SV_LOCK : "^$L"("OCK")? >
-  | <SV_ROUTINE : "^$R"("OUTINE")? >
-  | <SV_SYSTEM : "^$S"("YSTEM")? >
+    <SV_CHARACTER : "$C"("HARACTER")? >
+  | <SV_DEVICE : "$D"("EVICE")? >
+  | <SV_GLOBAL : "$G"("LOBAL")? >
+  | <SV_JOB : "$J"("OB")? >
+  | <SV_LOCK : "$L"("OCK")? >
+  | <SV_ROUTINE : "$R"("OUTINE")? >
+//  | <SV_SYSTEM : "$S"("YSTEM")? >
+  // ^$Zunspecified ??
 }
 
 // identifiers
@@ -190,9 +197,9 @@ void formalline() : {}
 
 void linebody() : {}
 {
-	commandscomment() 
+	<COMMENT> <EOL>
+	| commandscomment() 
 	| commandsextsyntax()
-	| ( <COMMENT> <EOL> )
 }
 
 void formallist() : {}
@@ -271,7 +278,7 @@ void extsyntax() : {}  // TODO
 
 void breakcommand() : {}
 {
-	<BREAK> ( postcond() )? 
+	<BREAK> ( postcond() )? (" ")*
 	{
 // TODO: implement
 		AstNode node = new BreakCommand();
@@ -281,7 +288,7 @@ void breakcommand() : {}
 
 void closecommand() : {}
 {
-	<CLOSE> ( postcond() )? 
+	<CLOSE> ( postcond() )? " "
 	{
 // TODO: implement
 		AstNode node = new CloseCommand();
@@ -299,9 +306,9 @@ void docommand() : {}
 	}
 }
 
-void elsecommand() : {}
+void elsecommand() : {}  //*
 {
-	<ELSE>
+	<ELSE> (" ")*
 	{
 // TODO: implement
 		AstNode node = new ElseCommand();
@@ -309,9 +316,16 @@ void elsecommand() : {}
 	}
 }
 
-void forcommand() : {}
+void forcommand() : {} //*
 {
-	<FOR>
+	LOOKAHEAD( 3 )
+	<FOR> " " lvn() "=" expr() ( ":" expr() )? ( ":" expr() )?
+	{
+// TODO: implement
+		AstNode node = new ForCommand();
+		System.out.println("forcommand(2)");
+	}
+	| <FOR> (" ")*
 	{
 // TODO: implement
 		AstNode node = new ForCommand();
@@ -342,11 +356,31 @@ void haltcommand() : {}
 
 void ifcommand() : {}
 {
-	<IF>
+	LOOKAHEAD( 3 )
+	<IF> " " ifarg() ( "," ifarg() )*
 	{
 // TODO: implement
 		AstNode node = new IfCommand();
 		System.out.println("ifcommand()");
+	}
+	| <IF> (" ")?
+	{
+// TODO: implement
+		AstNode node = new IfCommand();
+		System.out.println("ifcommand()");
+	}
+}
+
+
+void ifarg() : {System.err.println("ifarg()");}
+{
+	expr()
+	{
+		System.out.println("ifarg(1)");
+	}
+	| "@" expratom()
+	{	
+		System.out.println("ifarg(2)");
 	}
 }
 
@@ -360,13 +394,63 @@ void jobcommand() : {}
 	}
 }
 
-void killcommand() : {}
+void killcommand() : {System.err.println("killcommand");}
 {
-	<KILL> ( postcond() )? 
+	LOOKAHEAD( 3 )
+	<KILL> ( postcond() )? " " killarglist() 
 	{
 // TODO: implement
 		AstNode node = new KillCommand();
 		System.out.println("killcommand()");
+	}
+	| <KILL> ( postcond() )? (" ")*
+	{
+// TODO: implement
+		AstNode node2 = new KillCommand();
+		System.out.println("killcommand()");
+	}
+}
+
+void killarglist() : {}
+{
+	killarg() ( "," killarg() )*
+	{
+	}
+}
+
+void killarg() : {}
+{
+	 "@" expratom()
+	{
+		System.out.println("killarg(1)");
+	}
+	| lnamelist()
+	{
+		System.out.println("killarg(2)");
+	}
+	| glvn()
+	{
+		System.out.println("killarg(3)");
+	}
+}
+
+void lnamelist() : {}
+{
+	"(" ( lname() ( "," lname() )* )? ")"
+	{
+		System.out.println("lnamelist()");
+	}
+}
+
+void lname() : {}
+{
+	"@" expratom() 
+	{
+		System.out.println("lname()");
+	}
+	| <NAME>
+	{
+		System.out.println("lname()");
 	}
 }
 
@@ -410,9 +494,9 @@ void opencommand() : {}
 	}
 }
 
-void quitcommand() : {System.err.println("quitcommand(1)");}
+void quitcommand() : {} //*
 {
-	<QUIT> ( postcond() )? 
+	<QUIT> ( postcond() )? (" ")* ( expr() )?
 	{
 // TODO: implement
 		AstNode node = new QuitCommand();
@@ -422,7 +506,7 @@ void quitcommand() : {System.err.println("quitcommand(1)");}
 
 void readcommand() : {}
 {
-	<READ> ( postcond() )? 
+	<READ> ( postcond() )? " "
 	{
 // TODO: implement
 		AstNode node = new ReadCommand();
@@ -502,19 +586,27 @@ void expratom() : {System.err.println("expratom");}
 	| "@" expratom()
 }
 
-void exprtail() : {} // TODO
+void exprtail() : {System.err.println("exprtail");}
 {
-	 "."
+	 binaryop() expratom()
+	 | ( "\'" )? relation() expratom()
+	 | ( "\'" )? logicalop() expratom()
+	 | ( "\'" )? "?" "."
+	 | ( "\'" )? "?" "@" expratom()
 }
 
 void glvn() : {} 
 {
+	LOOKAHEAD( 3 )
 	lvn() | gvn () | ssvn() 
 }
 
 void lvn() : {} 
 {
 	<NAME> ( "(" ( exprlist() )? ")" )?
+	{
+		System.err.println("lvn()");
+	}
 }
 
 void exprlist() : {}  // TODO
@@ -525,11 +617,31 @@ void exprlist() : {}  // TODO
 void gvn() : {}
 {
 	"^" lvn()
+	{
+		System.err.println("gvn()");
+	}
 }
 
 void ssvn() : {}  // TODO
 {
-	 "."
+//	LOOKAHEAD( 2 )
+    "^" <SV_CHARACTER>
+	{
+		System.err.println("ssvn(SV_CHARACTER)");
+	}
+  | "^" <F_CHAR>
+	{
+		System.err.println("ssvn(F_CHAR)");
+	}
+  | "^" <SV_DEVICE>
+  | "^" <SV_GLOBAL>
+  | "^" <SV_JOB>
+  | "^" <SV_LOCK>
+  | "^" <SV_ROUTINE>
+  | "^" <V_SYSTEM>
+	{
+		System.err.println("ssvn(V_SYSTEM)");
+	}
 }
 
 void expritem() : {}  // TODO
@@ -552,4 +664,19 @@ void expritem() : {}  // TODO
 void unaryop() : {}
 {
 	"\'" | "+" | "-"
+}
+
+void binaryop() : {}
+{
+	"_" | "+" | "-" | "*" | "/" | "#" | "\\" | "**"
+}
+
+void relation() : {}
+{
+	"=" | "<" | ">" | "]" | "[" | "]]"
+}
+
+void logicalop() : {}
+{
+	"&" | "!" 
 }
