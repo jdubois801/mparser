@@ -19,7 +19,13 @@ public class FooParser {
 //	" F \r\n"+
 //	" F name=1:2 Q:0 \r\n"+
 //	" K:name @name,name2,^aa,(a,b),p(3),^q(3,4),^$CHARACTER \r\n"
-	" I 1,\"false\",@foo,(1+name),p(3) \r\n"
+//	" I 1,\"false\",@foo,(1+name),p(3) \r\n"
+//	" C foo \r\n"
+//	" D foo \r\n"
+//	" G:1 foo:0,bar:(quack+1) \r\n"
+//	" H:0 \r\n"
+//	" M:0 @bar,foo=^bar(12) \r\n"
+	" N foo \r\n"
 	;
 
 	public static void main(String[] args) {
@@ -276,7 +282,7 @@ void extsyntax() : {}  // TODO
 	}
 }
 
-void breakcommand() : {}
+void breakcommand() : {} //*
 {
 	<BREAK> ( postcond() )? (" ")*
 	{
@@ -286,9 +292,9 @@ void breakcommand() : {}
 	}
 }
 
-void closecommand() : {}
+void closecommand() : {} //*
 {
-	<CLOSE> ( postcond() )? " "
+	<CLOSE> ( postcond() )? " " closearglist()
 	{
 // TODO: implement
 		AstNode node = new CloseCommand();
@@ -296,13 +302,65 @@ void closecommand() : {}
 	}
 }
 
-void docommand() : {}
+void closearglist() : {}
 {
-	<DO> ( postcond() )? 
+	closearg() ( "," closearg() )*
+	{
+		System.err.println("closearglist()");
+	}
+}
+
+void closearg() : {}
+{
+	"@" expratom()
+	| expr() ( ":" deviceparams() )?
+}
+
+void deviceparams() : {}
+{
+	deviceparam()
+	{
+		System.err.println("deviceparams()");
+	}
+	// TODO there's also the (param : param : param ...)  notation
+}
+
+void deviceparam() : {}
+{
+	<NAME> "=" expr()
+	| <NAME>
+	| expr()
+}
+
+void docommand() : {} //*
+{
+	<DO> ( postcond() )? ( (" " doarglist() ) | (" ")? )
 	{
 // TODO: implement
 		AstNode node = new DoCommand();
 		System.out.println("docommand()");
+	}
+}
+
+void doarglist() : {}
+{
+	doarg() ( "," doarg() )*
+}
+
+void doarg() : {}
+{
+	"@" expratom()
+	| entryref()
+}
+
+void entryref() : {}
+{
+	// TODO
+	"^" <NAME>
+	{
+	}
+	| <NAME>  ( "+" <NUMBER> )?  ( "^" <NAME> )?
+	{
 	}
 }
 
@@ -333,9 +391,9 @@ void forcommand() : {} //*
 	}
 }
 
-void gotocommand() : {}
+void gotocommand() : {} //*
 {
-	<GOTO> ( postcond() )? 
+	<GOTO> ( postcond() )? " " gotoargs()
 	{
 // TODO: implement
 		AstNode node = new GotoCommand();
@@ -343,7 +401,20 @@ void gotocommand() : {}
 	}
 }
 
-void haltcommand() : {}
+void gotoargs() : {}
+{
+	gotoarg() ( "," gotoarg() )*
+}
+
+void gotoarg() : {}
+{
+	entryref() ( postcond() )?
+	{
+		System.err.println("gotoarg()");
+	}
+}
+
+void haltcommand() : {} //*
 {
 	// deal with <HANG> also
 	<HALT> ( postcond() )? 
@@ -354,7 +425,7 @@ void haltcommand() : {}
 	}
 }
 
-void ifcommand() : {}
+void ifcommand() : {} //*
 {
 	LOOKAHEAD( 3 )
 	<IF> " " ifarg() ( "," ifarg() )*
@@ -394,7 +465,7 @@ void jobcommand() : {}
 	}
 }
 
-void killcommand() : {System.err.println("killcommand");}
+void killcommand() : {} //*
 {
 	LOOKAHEAD( 3 )
 	<KILL> ( postcond() )? " " killarglist() 
@@ -464,9 +535,9 @@ void lockcommand() : {}
 	}
 }
 
-void mergecommand() : {}
+void mergecommand() : {} //*
 {
-	<MERGE> ( postcond() )? 
+	<MERGE> ( postcond() )? " " mergearglist()
 	{
 // TODO: implement
 		AstNode node = new MergeCommand();
@@ -474,14 +545,38 @@ void mergecommand() : {}
 	}
 }
 
-void newcommand() : {}
+void mergearglist() : {}
 {
-	<NEW> ( postcond() )? 
+	mergearg() ( "," mergearg() )*
+}
+
+void mergearg() : {}
+{
+	"@" expratom()
+	| glvn() "=" glvn() 
+}
+
+void newcommand() : {} //*
+{
+	<NEW> ( postcond() )? ( (" " newarglist()) | ( " " )? )
 	{
 // TODO: implement
 		AstNode node = new NewCommand();
 		System.out.println("newcommand()");
 	}
+}
+
+void newarglist() : {}
+{
+	newarg() ( "," newarg() )*
+}
+
+void newarg() : {}
+{
+	"@" expratom()
+	| lnamelist() 
+	| lname()
+	// TODO: newsvn
 }
 
 void opencommand() : {}
