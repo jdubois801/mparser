@@ -25,7 +25,15 @@ public class FooParser {
 //	" G:1 foo:0,bar:(quack+1) \r\n"
 //	" H:0 \r\n"
 //	" M:0 @bar,foo=^bar(12) \r\n"
-	" N foo \r\n"
+//	" N foo \r\n"
+//	" S (foo,bar)=3,$X=2,$Y=3,$DEVICE=4,$KEY=5,$ECODE=6,$ETRAP=7,$P(foo,\"^\",3)=\"3\",$E(bar,\"^\")=9 \r\n"
+//	" R foo,bar#2,*q \r\n"
+//	" U foo \r\n"
+//	" O foo \r\n"
+//	" W:0 foo,*foo \r\n"
+//	" X bob \r\n"
+//	" L foo \r\n"
+	" J ^foo(1) \r\n"
 	;
 
 	public static void main(String[] args) {
@@ -109,6 +117,7 @@ TOKEN : {
     <V_DEVICE : "$D"("EVICE")? >
   | <V_ECODE : "$EC"("ODE")? >
   | <V_ESTACK : "$ES"("TACK")? >
+  | <V_ETRAP : "$ET"("RAP")? >
   | <V_HORLOG : "$H"("ORLOG")? >
   | <V_IO : "$I"("O")? >
   | <V_JOB : "$J"("OB")? >
@@ -138,7 +147,7 @@ TOKEN : {
 // identifiers
 TOKEN : {
    < NAME : ("%"|<LETTER>)(<LETTER>|<DIGIT>)* >  // not strictly correct since "%" isn't a valid name
-  | <STRLIT : "\"" (["a"-"z"])* "\"" > 
+  | <STRLIT : "\"" (["a"-"z","A"-"Z","0"-"9","^"])* "\"" > 
 }
 
 
@@ -251,27 +260,27 @@ void commands() : {}
 void command() : { System.err.println("command()");
 }
 {
-	breakcommand()
-	| closecommand()
-	| docommand()
-	| elsecommand()
-	| forcommand()
-	| gotocommand()
-	| haltcommand()
-	| ifcommand()
-	| jobcommand()
-	| killcommand()
-	| lockcommand()
-	| mergecommand()
-	| newcommand()
-	| opencommand()
-	| quitcommand()
-	| readcommand()
-	| setcommand()
-	| usecommand()
-	| viewcommand()
-	| writecommand()
-	| xecutecommand()
+	breakcommand() //*
+	| closecommand() //*
+	| docommand() //*
+	| elsecommand() //*
+	| forcommand() //*
+	| gotocommand() //*
+	| haltcommand() //*
+	| ifcommand() //*
+	| jobcommand() //*
+	| killcommand() //*
+	| lockcommand() //*
+	| mergecommand() //*
+	| newcommand() //*
+	| opencommand() //*
+	| quitcommand() //*
+	| readcommand() //*
+	| setcommand() //*
+	| usecommand() //*
+	| viewcommand() //*
+	| writecommand() //*
+	| xecutecommand() //*
 }
 
 void extsyntax() : {}  // TODO
@@ -457,12 +466,51 @@ void ifarg() : {System.err.println("ifarg()");}
 
 void jobcommand() : {}
 {
-	<JOB> ( postcond() )? 
+	<JOB> ( postcond() )? " " jobarglist()
 	{
 // TODO: implement
 		AstNode node = new JobCommand();
 		System.out.println("jobcommand()");
 	}
+}
+
+void jobarglist() : {}
+{
+	jobarg() ( "," jobarg() )*
+}
+
+void jobarg() : {}
+{
+	"@" expratom()
+	| labelref() actuallist() ( ":" jobparams() )?
+	| entryref() ( ":" jobparams() )?
+}
+
+void labelref() : {}
+{
+	<NAME> ( "^" ( "|" environment() "|" )? )? <NAME>
+	| "^" ( "|" environment() "|" )?  <NAME>
+}
+
+void environment() : {}
+{
+	expr()
+}
+
+void actuallist() : {}
+{
+	"(" exprlist() ")"
+}
+
+void jobparams() : {}
+{
+	( processparams() )? expr()
+}
+
+void processparams() : {}
+{
+	"(" ( expr() ":" )* expr() ")"
+	| expr()
 }
 
 void killcommand() : {} //*
@@ -527,12 +575,34 @@ void lname() : {}
 
 void lockcommand() : {}
 {
-	<LOCK> ( postcond() )? 
+	<LOCK> ( postcond() )? ( " " ( lockarglist() )? )?
 	{
 // TODO: implement
 		AstNode node = new LockCommand();
 		System.out.println("lockcommand()");
 	}
+}
+
+void lockarglist() : {}
+{
+	lockarg() ( "," lockarg() )*
+}
+
+void lockarg() : {}
+{
+	"@" expratom()
+	| ( "+" | "-" )? ( ( "(" nreflist() ")" ) | nref() ) ( expr() )?
+}
+
+void nreflist() : {}
+{
+	nref() ( "," nref() )*
+}
+
+void nref() : {}
+{
+	( "^" )? ( "|" <NAME> "|" )? <NAME> ( "(" exprlist() ")" )?
+// | "@" expratom()  // suppressed for now because its ambiguous
 }
 
 void mergecommand() : {} //*
@@ -581,12 +651,41 @@ void newarg() : {}
 
 void opencommand() : {}
 {
-	<OPEN> ( postcond() )? 
+	<OPEN> ( postcond() )? " " openarglist()
 	{
 // TODO: implement
 		AstNode node = new OpenCommand();
 		System.out.println("opencommand()");
 	}
+}
+
+void openarglist() : {}
+{
+	openarg() ( "," openarg() )*
+}
+	
+void openarg() : {}
+{
+	"@" expratom()
+	| expr() ( ":" openparameters() )?
+}
+	
+void openparameters() : {}
+{
+	deviceparams() ( expr() ( ":" expr() )? )?
+	| ( deviceparams() )? "::" mnemonicspec()
+	| expr() ( ":" mnemonicspec() )?
+}
+
+void mnemonicspec() : {}
+{
+	"(" mnemonicspace() ( "," mnemonicspace() )* ")"
+	| mnemonicspace()
+}
+
+void mnemonicspace() : {}
+{
+	expr()
 }
 
 void quitcommand() : {} //*
@@ -601,7 +700,7 @@ void quitcommand() : {} //*
 
 void readcommand() : {}
 {
-	<READ> ( postcond() )? " "
+	<READ> ( postcond() )? " " readarglist()
 	{
 // TODO: implement
 		AstNode node = new ReadCommand();
@@ -609,9 +708,30 @@ void readcommand() : {}
 	}
 }
 
-void setcommand() : {}
+void readarglist() : {}
 {
-	<SET> ( postcond() )? 
+	readarg() ( "," readarg() )*
+}
+
+void readarg() : {}
+{
+	"@" expratom()
+	| "*" glvn() ( expr() )*
+	| glvn() ( "#" expr() )? ( expr() )?
+	| format()
+	| <STRLIT>
+}
+
+void format() : {}  // TODO
+{
+	"!"
+	| "#"
+	| "?"
+}
+
+void setcommand() : {System.err.println("setcommand");}
+{
+	<SET> ( postcond() )? " " setlist()
 	{
 // TODO: implement
 		AstNode node = new SetCommand();
@@ -619,14 +739,86 @@ void setcommand() : {}
 	}
 }
 
+void setlist() : {}
+{
+	"@" expratom()
+	| setatom() ( "," setatom() )*
+}
+
+void setatom() : {}
+{
+	setdestination() "=" expr()
+}
+
+void setdestination() : {}
+{
+	"(" setleftlist() ")"
+	| setleft()
+}
+
+void setleftlist() : {}
+{
+	setleft() ( "," setleft() )*
+}
+
+void setleft() : {System.err.println("setleft");}
+{
+	leftrestricted()
+	| leftexpr()
+	| glvn()
+	
+}
+
+void leftrestricted() : {}
+{
+	<V_DEVICE>
+	| <V_KEY>
+	| <V_X>
+	| <V_Y>
+}
+
+void leftexpr() : {}
+{
+	setev()
+	| setextract()
+	| setpiece()
+}
+
+void setev() : {}
+{
+	<V_ECODE>
+	| <V_ETRAP>
+}
+
+void setextract() : {}
+{
+	<F_EXTRACT> "(" glvn() "," expr() ( "," expr() )* ")"
+}
+
+void setpiece() : {}
+{
+	<F_PIECE> "(" glvn() "," expr() ( "," expr() )* ( "," expr() )* ")"
+}
+
 void usecommand() : {}
 {
-	<USE> ( postcond() )? 
+	<USE> ( postcond() )? " " usearglist()
 	{
 // TODO: implement
 		AstNode node = new UseCommand();
 		System.out.println("usecommand()");
 	}
+}
+
+void usearglist() : {}
+{
+	usearg() ( "," usearg() )*
+}
+
+void usearg() : {}
+{
+	"@" expratom()
+	| expr() ( ":" deviceparams() )? ( ":" mnemonicspace() )?
 }
 
 void viewcommand() : {}
@@ -641,7 +833,7 @@ void viewcommand() : {}
 
 void writecommand() : {}
 {
-	<WRITE> ( postcond() )? 
+	<WRITE> ( postcond() )? " " writearglist()
 	{
 // TODO: implement
 		AstNode node = new WriteCommand();
@@ -649,14 +841,38 @@ void writecommand() : {}
 	}
 }
 
+void writearglist() : {}
+{
+	writearg() ( "," writearg() )*
+}
+
+void writearg() : {}
+{
+	"@" expratom()
+	| "*" expr()
+	| format()
+	| expr()
+}
+
 void xecutecommand() : {}
 {
-	<XECUTE> ( postcond() )? 
+	<XECUTE> ( postcond() )? " " xarglist()
 	{
 // TODO: implement
 		AstNode node = new XecuteCommand();
 		System.out.println("xecutecommand()");
 	}
+}
+
+void xarglist() : {}
+{
+	xarg() ( "," xarg() )*
+}
+
+void xarg() : {}
+{
+	"@" expratom()
+	| expr() ( postcond() )?
 }
 
 void postcond() : {System.err.println("postcond");}

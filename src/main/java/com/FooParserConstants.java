@@ -115,45 +115,47 @@ public interface FooParserConstants {
   /** RegularExpression Id. */
   int V_ESTACK = 52;
   /** RegularExpression Id. */
-  int V_HORLOG = 53;
+  int V_ETRAP = 53;
   /** RegularExpression Id. */
-  int V_IO = 54;
+  int V_HORLOG = 54;
   /** RegularExpression Id. */
-  int V_JOB = 55;
+  int V_IO = 55;
   /** RegularExpression Id. */
-  int V_KEY = 56;
+  int V_JOB = 56;
   /** RegularExpression Id. */
-  int V_PRINCIPAL = 57;
+  int V_KEY = 57;
   /** RegularExpression Id. */
-  int V_QUIT = 58;
+  int V_PRINCIPAL = 58;
   /** RegularExpression Id. */
-  int V_REFERENCE = 59;
+  int V_QUIT = 59;
   /** RegularExpression Id. */
-  int V_STORAGE = 60;
+  int V_REFERENCE = 60;
   /** RegularExpression Id. */
-  int V_SYSTEM = 61;
+  int V_STORAGE = 61;
   /** RegularExpression Id. */
-  int V_TEST = 62;
+  int V_SYSTEM = 62;
   /** RegularExpression Id. */
-  int V_X = 63;
+  int V_TEST = 63;
   /** RegularExpression Id. */
-  int V_Y = 64;
+  int V_X = 64;
   /** RegularExpression Id. */
-  int SV_CHARACTER = 65;
+  int V_Y = 65;
   /** RegularExpression Id. */
-  int SV_DEVICE = 66;
+  int SV_CHARACTER = 66;
   /** RegularExpression Id. */
-  int SV_GLOBAL = 67;
+  int SV_DEVICE = 67;
   /** RegularExpression Id. */
-  int SV_JOB = 68;
+  int SV_GLOBAL = 68;
   /** RegularExpression Id. */
-  int SV_LOCK = 69;
+  int SV_JOB = 69;
   /** RegularExpression Id. */
-  int SV_ROUTINE = 70;
+  int SV_LOCK = 70;
   /** RegularExpression Id. */
-  int NAME = 71;
+  int SV_ROUTINE = 71;
   /** RegularExpression Id. */
-  int STRLIT = 72;
+  int NAME = 72;
+  /** RegularExpression Id. */
+  int STRLIT = 73;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -213,6 +215,7 @@ public interface FooParserConstants {
     "<V_DEVICE>",
     "<V_ECODE>",
     "<V_ESTACK>",
+    "<V_ETRAP>",
     "<V_HORLOG>",
     "<V_IO>",
     "<V_JOB>",
@@ -244,13 +247,16 @@ public interface FooParserConstants {
     "\"=\"",
     "\"^\"",
     "\"+\"",
-    "\"\\\'\"",
-    "\"?\"",
+    "\"|\"",
     "\"-\"",
-    "\"_\"",
+    "\"::\"",
     "\"*\"",
-    "\"/\"",
     "\"#\"",
+    "\"!\"",
+    "\"?\"",
+    "\"\\\'\"",
+    "\"_\"",
+    "\"/\"",
     "\"\\\\\"",
     "\"**\"",
     "\"<\"",
@@ -259,7 +265,6 @@ public interface FooParserConstants {
     "\"[\"",
     "\"]]\"",
     "\"&\"",
-    "\"!\"",
   };
 
 }
