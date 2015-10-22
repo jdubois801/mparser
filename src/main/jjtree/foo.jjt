@@ -32,15 +32,18 @@ public class FooParser {
 //	" O foo \r\n"
 //	" W:0 foo,*foo \r\n"
 //	" X bob \r\n"
-//	" L foo \r\n"
-	" J ^foo(1) \r\n"
+	" L foo \r\n"
+//	" J ^foo(1) \r\n"
 	;
 
 	public static void main(String[] args) {
 		FooParser fp = new FooParser(new StringBufferInputStream(TEST_DATA));
 		
 		try {
-			fp.routine();
+			SimpleNode parseTree = fp.routine();
+			// test comment
+			parseTree.dump("");
+			
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -51,15 +54,7 @@ public class FooParser {
 
 PARSER_END(FooParser)
 
-// lexical tokens
-TOKEN : {
-   < EOL : "\r\n" >
- | < EOR : "\r\f" >
- | < COMMENT : ";" (~["\r"])* >
- | < #LETTER : ["a"-"z","A"-"Z"] >
- | <NUMBER : (<DIGIT>)+ > 
- | < DIGIT : ["0"-"9"] >
-}
+
 
 // basic commands
 TOKEN : {
@@ -150,11 +145,21 @@ TOKEN : {
   | <STRLIT : "\"" (["a"-"z","A"-"Z","0"-"9","^"])* "\"" > 
 }
 
+// lexical tokens
+TOKEN : {
+   < EOL : "\r\n" >
+ | < EOR : "\r\f" >
+ | < COMMENT : ";" (~["\r"])* >
+ | < #LETTER : ["a"-"z","A"-"Z"] >
+ | <NUMBER : (<DIGIT>)+ > 
+ | < DIGIT : ["0"-"9"] >
+}
 
-void routine() : {}
+SimpleNode routine() : {}
 {
 	routinehead()
 	routinebody()
+	{ return jjtThis; }
 }
 
 void routinehead() : {}
@@ -464,7 +469,7 @@ void ifarg() : {System.err.println("ifarg()");}
 	}
 }
 
-void jobcommand() : {}
+void jobcommand() #JobCommand : {}
 {
 	<JOB> ( postcond() )? " " jobarglist()
 	{
@@ -573,13 +578,14 @@ void lname() : {}
 	}
 }
 
-void lockcommand() : {}
+LockCommand lockcommand() : {}
 {
 	<LOCK> ( postcond() )? ( " " ( lockarglist() )? )?
 	{
 // TODO: implement
-		AstNode node = new LockCommand();
+		LockCommand node = new LockCommand();
 		System.out.println("lockcommand()");
+		return node;
 	}
 }
 
@@ -599,9 +605,12 @@ void nreflist() : {}
 	nref() ( "," nref() )*
 }
 
-void nref() : {}
+void nref() : {
+	Token n1;
+	Token n2;
+}
 {
-	( "^" )? ( "|" <NAME> "|" )? <NAME> ( "(" exprlist() ")" )?
+	( "^" )? ( "|" n1=<NAME> "|" )? n2=<NAME> ( "(" exprlist() ")" )?
 // | "@" expratom()  // suppressed for now because its ambiguous
 }
 
