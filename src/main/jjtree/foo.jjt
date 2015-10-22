@@ -296,23 +296,23 @@ void extsyntax() : {}  // TODO
 	}
 }
 
-void breakcommand() : {} //*
+BreakCommand breakcommand() : {}
 {
 	<BREAK> ( postcond() )? (" ")*
 	{
 // TODO: implement
-		AstNode node = new BreakCommand();
-		System.out.println("breakcommand()");
+		BreakCommand node = new BreakCommand();
+		return node;
 	}
 }
 
-void closecommand() : {} //*
+CloseCommand closecommand() : {}
 {
 	<CLOSE> ( postcond() )? " " closearglist()
 	{
 // TODO: implement
-		AstNode node = new CloseCommand();
-		System.out.println("closecommand()");
+		CloseCommand node = new CloseCommand();
+		return node;
 	}
 }
 
@@ -346,13 +346,13 @@ void deviceparam() : {}
 	| expr()
 }
 
-void docommand() : {} //*
+DoCommand docommand() : {}
 {
 	<DO> ( postcond() )? ( (" " doarglist() ) | (" ")? )
 	{
 // TODO: implement
-		AstNode node = new DoCommand();
-		System.out.println("docommand()");
+		DoCommand node = new DoCommand();
+		return node;
 	}
 }
 
@@ -378,40 +378,40 @@ void entryref() : {}
 	}
 }
 
-void elsecommand() : {}  //*
+ElseCommand elsecommand() : {}
 {
 	<ELSE> (" ")*
 	{
 // TODO: implement
-		AstNode node = new ElseCommand();
-		System.out.println("elsecommand()");
+		ElseCommand node = new ElseCommand();
+		return node;
 	}
 }
 
-void forcommand() : {} //*
+ForCommand forcommand() : {}
 {
 	LOOKAHEAD( 3 )
 	<FOR> " " lvn() "=" expr() ( ":" expr() )? ( ":" expr() )?
 	{
 // TODO: implement
-		AstNode node = new ForCommand();
-		System.out.println("forcommand(2)");
+		ForCommand node = new ForCommand();
+		return node;
 	}
 	| <FOR> (" ")*
 	{
 // TODO: implement
-		AstNode node = new ForCommand();
-		System.out.println("forcommand()");
+		ForCommand node = new ForCommand();
+		return node;
 	}
 }
 
-void gotocommand() : {} //*
+GotoCommand gotocommand() : {}
 {
 	<GOTO> ( postcond() )? " " gotoargs()
 	{
 // TODO: implement
-		AstNode node = new GotoCommand();
-		System.out.println("gotocommand()");
+		GotoCommand node = new GotoCommand();
+		return node;
 	}
 }
 
@@ -428,31 +428,31 @@ void gotoarg() : {}
 	}
 }
 
-void haltcommand() : {} //*
+HaltCommand haltcommand() : {}
 {
 	// deal with <HANG> also
 	<HALT> ( postcond() )? 
 	{
 // TODO: implement
-		AstNode node = new HaltCommand();
-		System.out.println("haltcommand()");
+		HaltCommand node = new HaltCommand();
+		return node;
 	}
 }
 
-void ifcommand() : {} //*
+IfCommand ifcommand() : {}
 {
 	LOOKAHEAD( 3 )
 	<IF> " " ifarg() ( "," ifarg() )*
 	{
 // TODO: implement
-		AstNode node = new IfCommand();
-		System.out.println("ifcommand()");
+		IfCommand node = new IfCommand();
+		return node;
 	}
 	| <IF> (" ")?
 	{
 // TODO: implement
-		AstNode node = new IfCommand();
-		System.out.println("ifcommand()");
+		IfCommand node = new IfCommand();
+		return node;
 	}
 }
 
@@ -469,13 +469,13 @@ void ifarg() : {System.err.println("ifarg()");}
 	}
 }
 
-void jobcommand() #JobCommand : {}
+JobCommand jobcommand() : {}
 {
 	<JOB> ( postcond() )? " " jobarglist()
 	{
 // TODO: implement
-		AstNode node = new JobCommand();
-		System.out.println("jobcommand()");
+		JobCommand node = new JobCommand();
+		return node;
 	}
 }
 
@@ -518,20 +518,20 @@ void processparams() : {}
 	| expr()
 }
 
-void killcommand() : {} //*
+KillCommand killcommand() : {}
 {
 	LOOKAHEAD( 3 )
 	<KILL> ( postcond() )? " " killarglist() 
 	{
 // TODO: implement
-		AstNode node = new KillCommand();
-		System.out.println("killcommand()");
+		KillCommand node = new KillCommand();
+		return node;
 	}
 	| <KILL> ( postcond() )? (" ")*
 	{
 // TODO: implement
-		AstNode node2 = new KillCommand();
-		System.out.println("killcommand()");
+		KillCommand node2 = new KillCommand();
+		return node2;
 	}
 }
 
@@ -614,13 +614,13 @@ void nref() : {
 // | "@" expratom()  // suppressed for now because its ambiguous
 }
 
-void mergecommand() : {} //*
+MergeCommand mergecommand() : {}
 {
 	<MERGE> ( postcond() )? " " mergearglist()
 	{
 // TODO: implement
-		AstNode node = new MergeCommand();
-		System.out.println("mergecommand()");
+		MergeCommand node = new MergeCommand();
+		return node;
 	}
 }
 
@@ -635,13 +635,13 @@ void mergearg() : {}
 	| glvn() "=" glvn() 
 }
 
-void newcommand() : {} //*
+NewCommand newcommand() : {}
 {
 	<NEW> ( postcond() )? ( (" " newarglist()) | ( " " )? )
 	{
 // TODO: implement
-		AstNode node = new NewCommand();
-		System.out.println("newcommand()");
+		NewCommand node = new NewCommand();
+		return node;
 	}
 }
 
@@ -658,13 +658,13 @@ void newarg() : {}
 	// TODO: newsvn
 }
 
-void opencommand() : {}
+OpenCommand opencommand() : {}
 {
 	<OPEN> ( postcond() )? " " openarglist()
 	{
 // TODO: implement
-		AstNode node = new OpenCommand();
-		System.out.println("opencommand()");
+		OpenCommand node = new OpenCommand();
+		return node;
 	}
 }
 
@@ -697,23 +697,23 @@ void mnemonicspace() : {}
 	expr()
 }
 
-void quitcommand() : {} //*
+QuitCommand quitcommand() : {}
 {
 	<QUIT> ( postcond() )? (" ")* ( expr() )?
 	{
 // TODO: implement
-		AstNode node = new QuitCommand();
-		System.out.println("quitcommand(2)");
+		QuitCommand node = new QuitCommand();
+		return node;
 	}
 }
 
-void readcommand() : {}
+ReadCommand readcommand() : {}
 {
 	<READ> ( postcond() )? " " readarglist()
 	{
 // TODO: implement
-		AstNode node = new ReadCommand();
-		System.out.println("readcommand()");
+		ReadCommand node = new ReadCommand();
+		return node;
 	}
 }
 
@@ -738,20 +738,25 @@ void format() : {}  // TODO
 	| "?"
 }
 
-void setcommand() : {System.err.println("setcommand");}
+SetCommand setcommand() : {
+	SimpleNode node1;
+	SimpleNode node2;
+}
 {
-	<SET> ( postcond() )? " " setlist()
+	<SET> ( node1=postcond() )? " " node2=setlist()
 	{
 // TODO: implement
-		AstNode node = new SetCommand();
-		System.out.println("setcommand()");
+		SetCommand node = new SetCommand();
+		return node;
 	}
 }
 
-void setlist() : {}
+SimpleNode setlist() : {}
 {
 	"@" expratom()
+	{ return jjtThis; }
 	| setatom() ( "," setatom() )*
+	{ return jjtThis; }
 }
 
 void setatom() : {}
@@ -809,13 +814,13 @@ void setpiece() : {}
 	<F_PIECE> "(" glvn() "," expr() ( "," expr() )* ( "," expr() )* ")"
 }
 
-void usecommand() : {}
+UseCommand usecommand() : {}
 {
 	<USE> ( postcond() )? " " usearglist()
 	{
 // TODO: implement
-		AstNode node = new UseCommand();
-		System.out.println("usecommand()");
+		UseCommand node = new UseCommand();
+		return node;
 	}
 }
 
@@ -830,23 +835,23 @@ void usearg() : {}
 	| expr() ( ":" deviceparams() )? ( ":" mnemonicspace() )?
 }
 
-void viewcommand() : {}
+ViewCommand viewcommand() : {}
 {
 	<VIEW> ( postcond() )? 
 	{
 // TODO: implement
-		AstNode node = new ViewCommand();
-		System.out.println("viewcommand()");
+		ViewCommand node = new ViewCommand();
+		return node;
 	}
 }
 
-void writecommand() : {}
+WriteCommand writecommand() : {}
 {
 	<WRITE> ( postcond() )? " " writearglist()
 	{
 // TODO: implement
-		AstNode node = new WriteCommand();
-		System.out.println("writecommand()");
+		WriteCommand node = new WriteCommand();
+		return node;
 	}
 }
 
@@ -863,13 +868,13 @@ void writearg() : {}
 	| expr()
 }
 
-void xecutecommand() : {}
+XecuteCommand xecutecommand() : {}
 {
 	<XECUTE> ( postcond() )? " " xarglist()
 	{
 // TODO: implement
-		AstNode node = new XecuteCommand();
-		System.out.println("xecutecommand()");
+		XecuteCommand node = new XecuteCommand();
+		return node;
 	}
 }
 
@@ -884,9 +889,10 @@ void xarg() : {}
 	| expr() ( postcond() )?
 }
 
-void postcond() : {System.err.println("postcond");}
+SimpleNode postcond() : {}
 {
 	":" tvexpr()
+	{ return jjtThis; }
 }
 
 void tvexpr() : {}
