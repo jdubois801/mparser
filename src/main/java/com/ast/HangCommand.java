@@ -1,5 +1,5 @@
 package com.ast;
 
-public class HangCommand extends AstNode {
+public class HangCommand extends Command {
 }
 

@@ -1,5 +1,5 @@
 package com.ast;
 
-public class IfCommand extends AstNode {
+public class IfCommand extends Command {
 }
 

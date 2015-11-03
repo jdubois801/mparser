@@ -1,5 +1,5 @@
 package com.ast;
 
-public class ElseCommand extends AstNode {
+public class ElseCommand extends Command {
 }
 

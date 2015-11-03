@@ -1,5 +1,8 @@
 package com.ast;
 
-public class KillCommand extends AstNode {
+public class KillCommand extends Command {
+	public KillCommand(PostCondition condition) {
+		setPostCondition(condition);
+	}
 }
 

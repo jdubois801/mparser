@@ -1,5 +1,8 @@
 package com.ast;
 
-public class GotoCommand extends AstNode {
+public class GotoCommand extends Command {
+	public GotoCommand(PostCondition condition) {
+		setPostCondition(condition);
+	}
 }
 

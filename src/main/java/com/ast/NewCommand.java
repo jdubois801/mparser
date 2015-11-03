@@ -1,5 +1,9 @@
 package com.ast;
 
-public class NewCommand extends AstNode {
+public class NewCommand extends Command {
+
+	public NewCommand(PostCondition condition) {
+		setPostCondition(condition);
+	}
 }
 

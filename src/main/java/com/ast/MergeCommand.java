@@ -1,5 +1,9 @@
 package com.ast;
 
-public class MergeCommand extends AstNode {
+public class MergeCommand extends Command {
+
+	public MergeCommand(PostCondition condition) {
+		setPostCondition(condition);
+	}
 }
 
