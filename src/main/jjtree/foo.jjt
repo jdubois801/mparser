@@ -308,21 +308,26 @@ PostCondition node1 = null;
 
 CloseCommand closecommand() : {
 PostCondition node1 = null;
+ArgList node2 = null;
 }
 {
-	<CLOSE> ( node1=postcond() )? " " closearglist()
+	<CLOSE> ( node1=postcond() )? " " node2=closearglist()
 	{
 // TODO: implement
 		CloseCommand node = new CloseCommand(node1);
+		node.setArgList(node2);
 		return node;
 	}
 }
 
-void closearglist() : {}
+ArgList closearglist() : {
+ArgList result = new ArgList();
+}
 {
 	closearg() ( "," closearg() )*
 	{
 		System.err.println("closearglist()");
+		return result;
 	}
 }
 
@@ -350,9 +355,10 @@ void deviceparam() : {}
 
 DoCommand docommand() : {
 PostCondition node1 = null;
+ArgList node2 = null;
 }
 {
-	<DO> ( node1=postcond() )? ( (" " doarglist() ) | (" ")? )
+	<DO> ( node1=postcond() )? ( (" " node2=doarglist() ) | (" ")? )
 	{
 // TODO: implement
 		DoCommand node = new DoCommand(node1);
@@ -360,9 +366,14 @@ PostCondition node1 = null;
 	}
 }
 
-void doarglist() : {}
+ArgList doarglist() : {
+ArgList result = new ArgList();
+}
 {
 	doarg() ( "," doarg() )*
+	{
+		return result;
+	}
 }
 
 void doarg() : {}
@@ -386,44 +397,56 @@ ElseCommand elsecommand() : {}
 {
 	<ELSE> (" ")*
 	{
-// TODO: implement
-		ElseCommand node = new ElseCommand();
-		return node;
+// have to do post processing (after parse) to figure out which indented lines
+// if any are bound to this else command.
+		return new ElseCommand();
 	}
 }
 
-ForCommand forcommand() : {}
+ForCommand forcommand() : {
+Expression node1 = null;
+Expression node2 = null;
+Expression node3 = null;
+}
 {
 	LOOKAHEAD( 3 )
-	<FOR> " " lvn() "=" expr() ( ":" expr() )? ( ":" expr() )?
+	<FOR> " " lvn() "=" node1=expr() ( ":" node2=expr() )? ( ":" node3=expr() )?
 	{
 // TODO: implement
 		ForCommand node = new ForCommand();
+		node.setExpression1(node1);
+		node.setExpression2(node2);
+		node.setExpression3(node3);
 		return node;
 	}
 	| <FOR> (" ")*
 	{
-// TODO: implement
-		ForCommand node = new ForCommand();
-		return node;
+		return new ForCommand();
 	}
 }
 
 GotoCommand gotocommand() : {
 PostCondition node1 = null;
+ArgList node2 = null;
 }
 {
-	<GOTO> ( node1=postcond() )? " " gotoargs()
+	<GOTO> ( node1=postcond() )? " " node2=gotoargs()
 	{
 // TODO: implement
 		GotoCommand node = new GotoCommand(node1);
+		node.setArgList(node2);
 		return node;
 	}
 }
 
-void gotoargs() : {}
+ArgList gotoargs() : {
+ArgList result = new ArgList();
+}
 {
 	gotoarg() ( "," gotoarg() )*
+	{
+		return result;
+	}
 }
 
 void gotoarg() : {
@@ -449,20 +472,23 @@ PostCondition node1 = null;
 	}
 }
 
-IfCommand ifcommand() : {}
+IfCommand ifcommand() : {
+ArgList node1 = new ArgList();
+}
 {
 	LOOKAHEAD( 3 )
 	<IF> " " ifarg() ( "," ifarg() )*
 	{
 // TODO: implement
 		IfCommand node = new IfCommand();
+		node.setArgList(node1);
 		return node;
 	}
 	| <IF> (" ")?
 	{
-// TODO: implement
-		IfCommand node = new IfCommand();
-		return node;
+// we'll have to do some post processing after parse to figure out
+// which indented lines belong to this if command.
+		return new IfCommand();
 	}
 }
 
@@ -481,19 +507,26 @@ void ifarg() : {System.err.println("ifarg()");}
 
 JobCommand jobcommand() : {
 PostCondition node1 = null;
+ArgList node2 = null;
 }
 {
-	<JOB> ( node1=postcond() )? " " jobarglist()
+	<JOB> ( node1=postcond() )? " " node2=jobarglist()
 	{
 // TODO: implement
 		JobCommand node = new JobCommand(node1);
+		node.setArgList(node2);
 		return node;
 	}
 }
 
-void jobarglist() : {}
+ArgList jobarglist() : {
+ArgList result = new ArgList();
+}
 {
 	jobarg() ( "," jobarg() )*
+	{
+		return result;
+	}
 }
 
 void jobarg() : {}
@@ -532,27 +565,32 @@ void processparams() : {}
 
 KillCommand killcommand() : {
 PostCondition node1 = null;
+ArgList node2 = null;
 }
 {
 	LOOKAHEAD( 3 )
-	<KILL> ( node1=postcond() )? " " killarglist() 
+	<KILL> ( node1=postcond() )? " " node2=killarglist() 
 	{
 // TODO: implement
 		KillCommand node = new KillCommand(node1);
+		node.setArgList(node2);
 		return node;
 	}
 	| <KILL> ( node1=postcond() )? (" ")*
 	{
 // TODO: implement
-		KillCommand node2 = new KillCommand(node1);
-		return node2;
+		KillCommand node3 = new KillCommand(node1);
+		return node3;
 	}
 }
 
-void killarglist() : {}
+ArgList killarglist() : {
+ArgList result = new ArgList();
+}
 {
 	killarg() ( "," killarg() )*
 	{
+		return result;
 	}
 }
 
@@ -594,20 +632,27 @@ void lname() : {}
 
 LockCommand lockcommand() : {
 PostCondition node1 = null;
+ArgList node2 = null;
 }
 {
-	<LOCK> ( node1=postcond() )? ( " " ( lockarglist() )? )?
+	<LOCK> ( node1=postcond() )? ( " " ( node2=lockarglist() )? )?
 	{
 // TODO: implement
 		LockCommand node = new LockCommand(node1);
+		node.setArgList(node2);
 		System.out.println("lockcommand()");
 		return node;
 	}
 }
 
-void lockarglist() : {}
+ArgList lockarglist() : {
+ArgList result = new ArgList();
+}
 {
 	lockarg() ( "," lockarg() )*
+	{
+		return result;
+	}
 }
 
 void lockarg() : {}
@@ -632,19 +677,26 @@ void nref() : {
 
 MergeCommand mergecommand() : {
 PostCondition node1 = null;
+ArgList node2 = null;
 }
 {
-	<MERGE> ( node1=postcond() )? " " mergearglist()
+	<MERGE> ( node1=postcond() )? " " node2=mergearglist()
 	{
 // TODO: implement
 		MergeCommand node = new MergeCommand(node1);
+		node.setArgList(node2);
 		return node;
 	}
 }
 
-void mergearglist() : {}
+ArgList mergearglist() : {
+ArgList result = new ArgList();
+}
 {
 	mergearg() ( "," mergearg() )*
+	{
+		return result;
+	}
 }
 
 void mergearg() : {}
@@ -655,19 +707,26 @@ void mergearg() : {}
 
 NewCommand newcommand() : {
 PostCondition node1 = null;
+ArgList node2 = null;
 }
 {
-	<NEW> ( node1=postcond() )? ( (" " newarglist()) | ( " " )? )
+	<NEW> ( node1=postcond() )? ( (" " node2=newarglist()) | ( " " )? )
 	{
 // TODO: implement
 		NewCommand node = new NewCommand(node1);
+		node.setArgList(node2);
 		return node;
 	}
 }
 
-void newarglist() : {}
+ArgList newarglist() : {
+ArgList result = new ArgList();
+}
 {
 	newarg() ( "," newarg() )*
+	{
+		return result;
+	}
 }
 
 void newarg() : {}
@@ -680,19 +739,26 @@ void newarg() : {}
 
 OpenCommand opencommand() : {
 PostCondition node1 = null;
+ArgList node2 = null;
 }
 {
-	<OPEN> ( node1=postcond() )? " " openarglist()
+	<OPEN> ( node1=postcond() )? " " node2=openarglist()
 	{
 // TODO: implement
 		OpenCommand node = new OpenCommand(node1);
+		node.setArgList(node2);
 		return node;
 	}
 }
 
-void openarglist() : {}
+ArgList openarglist() : {
+ArgList result = new ArgList();
+}
 {
 	openarg() ( "," openarg() )*
+	{
+		return result;
+	}
 }
 	
 void openarg() : {}
@@ -721,31 +787,40 @@ void mnemonicspace() : {}
 
 QuitCommand quitcommand() : {
 PostCondition node1 = null;
+Expression node2 = null;
 }
 {
-	<QUIT> ( node1=postcond() )? (" ")* ( expr() )?
+	<QUIT> ( node1=postcond() )? (" ")* ( node2=expr() )?
 	{
 // TODO: implement
 		QuitCommand node = new QuitCommand(node1);
+		node.setReturnExpression(node2);
 		return node;
 	}
 }
 
 ReadCommand readcommand() : {
 PostCondition node1 = null;
+ArgList node2 = null;
 }
 {
-	<READ> ( node1=postcond() )? " " readarglist()
+	<READ> ( node1=postcond() )? " " node2=readarglist()
 	{
 // TODO: implement
 		ReadCommand node = new ReadCommand(node1);
+		node.setArgList(node2);
 		return node;
 	}
 }
 
-void readarglist() : {}
+ArgList readarglist() : {
+ArgList result = new ArgList();
+}
 {
 	readarg() ( "," readarg() )*
+	{
+		return result;
+	}
 }
 
 void readarg() : {}
@@ -766,23 +841,25 @@ void format() : {}  // TODO
 
 SetCommand setcommand() : {
 	PostCondition node1 = null;
-	SimpleNode node2;
+	ArgList node2 = null;
 }
 {
-	<SET> ( node1=postcond() )? " " setlist()
+	<SET> ( node1=postcond() )? " " node2=setlist()
 	{
-// TODO: implement
 		SetCommand node = new SetCommand(node1);
+		node.setArgList(node2);
 		return node;
 	}
 }
 
-SimpleNode setlist() : {}
+ArgList setlist() : {
+ArgList result = new ArgList();
+}
 {
 	"@" expratom()
-	{ return jjtThis; }
+	{ return result; }
 	| setatom() ( "," setatom() )*
-	{ return jjtThis; }
+	{ return result; }
 }
 
 void setatom() : {}
@@ -842,19 +919,26 @@ void setpiece() : {}
 
 UseCommand usecommand() : {
 PostCondition node1 = null;
+ArgList node2 = null;
 }
 {
-	<USE> ( node1=postcond() )? " " usearglist()
+	<USE> ( node1=postcond() )? " " node2=usearglist()
 	{
 // TODO: implement
 		UseCommand node = new UseCommand(node1);
+		node.setArgList(node2);
 		return node;
 	}
 }
 
-void usearglist() : {}
+ArgList usearglist() : {
+ArgList result = new ArgList();
+}
 {
 	usearg() ( "," usearg() )*
+	{
+		return result;
+	}
 }
 
 void usearg() : {}
@@ -877,19 +961,26 @@ PostCondition node1 = null;
 
 WriteCommand writecommand() : {
 PostCondition node1 = null;
+ArgList node2 = null;
 }
 {
-	<WRITE> ( node1=postcond() )? " " writearglist()
+	<WRITE> ( node1=postcond() )? " " node2=writearglist()
 	{
 // TODO: implement
 		WriteCommand node = new WriteCommand(node1);
+		node.setArgList(node2);
 		return node;
 	}
 }
 
-void writearglist() : {}
+ArgList writearglist() : {
+ArgList result = new ArgList();
+}
 {
 	writearg() ( "," writearg() )*
+	{
+		return result;
+	}
 }
 
 void writearg() : {}
@@ -902,19 +993,26 @@ void writearg() : {}
 
 XecuteCommand xecutecommand() : {
 PostCondition node1 = null;
+ArgList node2 = null;
 }
 {
-	<XECUTE> ( node1=postcond() )? " " xarglist()
+	<XECUTE> ( node1=postcond() )? " " node2=xarglist()
 	{
 // TODO: implement
 		XecuteCommand node = new XecuteCommand(node1);
+		node.setArgList(node2);
 		return node;
 	}
 }
 
-void xarglist() : {}
+ArgList xarglist() : {
+ArgList result = new ArgList();
+}
 {
 	xarg() ( "," xarg() )*
+	{
+		return result;
+	}
 }
 
 void xarg() : {
