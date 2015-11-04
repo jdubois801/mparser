@@ -9,5 +9,9 @@ public class ArgList extends AstNode {
 	public List<Arg> getArgList() {
 		return argList;
 	}
+
+	public void add(Arg arg) {
+		argList.add(arg);
+	}
 }
 
