@@ -548,16 +548,23 @@ PostCondition node1 = null;
 	}
 }
 
-HaltCommand haltcommand() : {
+Command haltcommand() : {
 PostCondition node1 = null;
+Token n1;
+Command result = null;
 }
 {
 	// deal with <HANG> also
-	<HALT> ( node1=postcond() )? 
+	n1=<HALT> ( node1=postcond() )? 
 	{
-// TODO: implement
-		HaltCommand node = new HaltCommand(node1);
-		return node;
+		if ("HANG".equals(n1.toString())) {
+			// TODO - does HANG allow a post condition?
+			result = new HangCommand();
+		}
+		else {
+			result = new HaltCommand(node1);
+		}
+		return result;
 	}
 }
 
@@ -729,7 +736,6 @@ ArgList node2 = null;
 // TODO: implement
 		LockCommand node = new LockCommand(node1);
 		node.setArgList(node2);
-		System.out.println("lockcommand()");
 		return node;
 	}
 }
