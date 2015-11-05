@@ -18,6 +18,22 @@ import com.validation.RoutineValidator;
 public class KillCommandTest extends BaseTest {
 
 	@Test
+	public void testZero() throws Exception {
+
+		String src = "TEST ;\r\n KILL foo \r\n";
+		FooParser parser = new FooParser(new StringReader(src));
+		parser.routine();
+		
+		RoutineValidator.visit(parser.getParseResult());
+		
+		Command cmd = findFirstCommand(parser.getParseResult(), KillCommand.class); 
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof KillCommand);
+		KillCommand cc = (KillCommand)cmd;
+		assertNull(cc.getPostCondition());
+	}
+
+	@Test
 	public void testOne() throws Exception {
 
 		String src = "TEST ;\r\n K foo \r\n";
@@ -31,8 +47,6 @@ public class KillCommandTest extends BaseTest {
 		assertTrue(cmd instanceof KillCommand);
 		KillCommand cc = (KillCommand)cmd;
 		assertNull(cc.getPostCondition());
-		
-		System.err.println("cmd = " + cmd);
 	}
 
 	@Test

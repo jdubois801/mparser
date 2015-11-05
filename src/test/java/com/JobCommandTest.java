@@ -18,6 +18,22 @@ import com.validation.RoutineValidator;
 public class JobCommandTest extends BaseTest {
 
 	@Test
+	public void testZero() throws Exception {
+
+		String src = "TEST ;\r\n JOB ^foo(1) \r\n";
+		FooParser parser = new FooParser(new StringReader(src));
+		parser.routine();
+		
+		RoutineValidator.visit(parser.getParseResult());
+		
+		Command cmd = findFirstCommand(parser.getParseResult(), JobCommand.class); 
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof JobCommand);
+		JobCommand cc = (JobCommand)cmd;
+		assertNull(cc.getPostCondition());
+	}
+
+	@Test
 	public void testOne() throws Exception {
 
 		String src = "TEST ;\r\n J ^foo(1) \r\n";
@@ -31,9 +47,6 @@ public class JobCommandTest extends BaseTest {
 		assertTrue(cmd instanceof JobCommand);
 		JobCommand cc = (JobCommand)cmd;
 		assertNull(cc.getPostCondition());
-		
-		System.err.println("cmd = " + cmd);
 	}
-
 }
 

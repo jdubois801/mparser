@@ -31,8 +31,6 @@ public class HangCommandTest extends BaseTest {
 		assertTrue(cmd instanceof HangCommand);
 		HangCommand cc = (HangCommand)cmd;
 		assertNull(cc.getPostCondition());
-		
-		System.err.println("cmd = " + cmd);
 	}
 }
 

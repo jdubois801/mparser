@@ -18,6 +18,22 @@ import com.validation.RoutineValidator;
 public class CloseStatementTest extends BaseTest {
 
 	@Test
+	public void testZero() throws Exception {
+
+		String src = "TEST ;\r\n CLOSE foo \r\n";
+		FooParser parser = new FooParser(new StringReader(src));
+		parser.routine();
+		
+		RoutineValidator.visit(parser.getParseResult());
+		
+		Command cmd = findFirstCommand(parser.getParseResult(), CloseCommand.class); 
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof CloseCommand);
+		CloseCommand cc = (CloseCommand)cmd;
+		assertNull(cc.getPostCondition());
+	}
+
+	@Test
 	public void testOne() throws Exception {
 
 		String src = "TEST ;\r\n C foo \r\n";
@@ -31,8 +47,6 @@ public class CloseStatementTest extends BaseTest {
 		assertTrue(cmd instanceof CloseCommand);
 		CloseCommand cc = (CloseCommand)cmd;
 		assertNull(cc.getPostCondition());
-		
-		System.err.println("cmd = " + cmd);
 	}
 
 	@Test

@@ -18,6 +18,22 @@ import com.validation.RoutineValidator;
 public class MergeCommandTest extends BaseTest {
 
 	@Test
+	public void testZero() throws Exception {
+
+		String src = "TEST ;\r\n MERGE foo=bar \r\n";
+		FooParser parser = new FooParser(new StringReader(src));
+		parser.routine();
+		
+		RoutineValidator.visit(parser.getParseResult());
+		
+		Command cmd = findFirstCommand(parser.getParseResult(), MergeCommand.class); 
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof MergeCommand);
+		MergeCommand cc = (MergeCommand)cmd;
+		assertNull(cc.getPostCondition());
+	}
+
+	@Test
 	public void testOne() throws Exception {
 
 		String src = "TEST ;\r\n M foo=bar \r\n";
@@ -31,8 +47,6 @@ public class MergeCommandTest extends BaseTest {
 		assertTrue(cmd instanceof MergeCommand);
 		MergeCommand cc = (MergeCommand)cmd;
 		assertNull(cc.getPostCondition());
-		
-		System.err.println("cmd = " + cmd);
 	}
 
 	@Test

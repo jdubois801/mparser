@@ -20,25 +20,11 @@ import com.validation.RoutineValidator;
 public class LockStatementTest extends BaseTest {
 
 	@Test
-	public void testOne() throws Exception {
+	public void testZero() throws Exception {
 
-		String src = "TEST ;\r\n L foo \r\n";
+		String src = "TEST ;\r\n LOCK foo \r\n";
 		FooParser parser = new FooParser(new StringReader(src));
 		parser.routine();
-//		SimpleNode node = parser.routine();
-//		Node bodyNode = node.jjtGetChild(1);
-//		System.err.println("o = " + bodyNode);
-//		System.err.println("num children = " + bodyNode.jjtGetNumChildren());
-//		Node nNode = bodyNode.jjtGetChild(0);
-//		Node lNode = nNode.jjtGetChild(0);
-//		Node llNode = lNode.jjtGetChild(0);
-//		Node lbNode = llNode.jjtGetChild(0);
-//		Node ccNode = lbNode.jjtGetChild(0);
-//		Node cmNode = ccNode.jjtGetChild(0);
-//		Node cmdNode = cmNode.jjtGetChild(0);
-//		Node lockNode = cmdNode.jjtGetChild(0);
-//		System.err.println("o2 = " + cmdNode);
-//		System.err.println("o2 = " + cmdNode.getClass().getName());
 		
 		RoutineValidator.visit(parser.getParseResult());
 		
@@ -53,8 +39,28 @@ public class LockStatementTest extends BaseTest {
 		assertNotNull(lc.getArgList().getArgList());
 		assertEquals(1, lc.getArgList().getArgList().size());
 		assertNotNull(lc.getArgList().getArgList().get(0));
+	}
+
+	@Test
+	public void testOne() throws Exception {
+
+		String src = "TEST ;\r\n L foo \r\n";
+		FooParser parser = new FooParser(new StringReader(src));
+		parser.routine();
 		
-		System.err.println("cmd = " + cmd);
+		RoutineValidator.visit(parser.getParseResult());
+		
+		Command cmd = findFirstCommand(parser.getParseResult(), LockCommand.class); 
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof LockCommand);
+		LockCommand lc = (LockCommand)cmd;
+		assertNotNull(lc.getArgList());
+		assertNull(lc.getPostCondition());
+		
+		assertNotNull(lc.getArgList());
+		assertNotNull(lc.getArgList().getArgList());
+		assertEquals(1, lc.getArgList().getArgList().size());
+		assertNotNull(lc.getArgList().getArgList().get(0));
 	}
 
 	@Test

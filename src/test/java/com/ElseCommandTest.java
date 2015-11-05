@@ -18,6 +18,22 @@ import com.validation.RoutineValidator;
 public class ElseCommandTest extends BaseTest {
 
 	@Test
+	public void testZero() throws Exception {
+
+		String src = "TEST ;\r\n ELSE \r\n";
+		FooParser parser = new FooParser(new StringReader(src));
+		parser.routine();
+		
+		RoutineValidator.visit(parser.getParseResult());
+		
+		Command cmd = findFirstCommand(parser.getParseResult(), ElseCommand.class); 
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof ElseCommand);
+		ElseCommand cc = (ElseCommand)cmd;
+		assertNull(cc.getPostCondition());
+	}
+
+	@Test
 	public void testOne() throws Exception {
 
 		String src = "TEST ;\r\n E \r\n";
@@ -31,8 +47,5 @@ public class ElseCommandTest extends BaseTest {
 		assertTrue(cmd instanceof ElseCommand);
 		ElseCommand cc = (ElseCommand)cmd;
 		assertNull(cc.getPostCondition());
-		
-		System.err.println("cmd = " + cmd);
 	}
-
 }

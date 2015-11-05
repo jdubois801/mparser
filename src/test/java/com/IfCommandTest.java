@@ -18,6 +18,22 @@ import com.validation.RoutineValidator;
 public class IfCommandTest extends BaseTest {
 
 	@Test
+	public void testZero() throws Exception {
+
+		String src = "TEST ;\r\n IF foo \r\n";
+		FooParser parser = new FooParser(new StringReader(src));
+		parser.routine();
+		
+		RoutineValidator.visit(parser.getParseResult());
+		
+		Command cmd = findFirstCommand(parser.getParseResult(), IfCommand.class); 
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof IfCommand);
+		IfCommand cc = (IfCommand)cmd;
+		assertNull(cc.getPostCondition());
+	}
+
+	@Test
 	public void testOne() throws Exception {
 
 		String src = "TEST ;\r\n I foo \r\n";
@@ -31,8 +47,6 @@ public class IfCommandTest extends BaseTest {
 		assertTrue(cmd instanceof IfCommand);
 		IfCommand cc = (IfCommand)cmd;
 		assertNull(cc.getPostCondition());
-		
-		System.err.println("cmd = " + cmd);
 	}
 
 	@Test

@@ -18,6 +18,22 @@ import com.validation.RoutineValidator;
 public class XecuteCommandTest extends BaseTest {
 
 	@Test
+	public void testZero() throws Exception {
+
+		String src = "TEST ;\r\n XECUTE foo \r\n";
+		FooParser parser = new FooParser(new StringReader(src));
+		parser.routine();
+		
+		RoutineValidator.visit(parser.getParseResult());
+		
+		Command cmd = findFirstCommand(parser.getParseResult(), XecuteCommand.class); 
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof XecuteCommand);
+		XecuteCommand cc = (XecuteCommand)cmd;
+		assertNull(cc.getPostCondition());
+	}
+
+	@Test
 	public void testOne() throws Exception {
 
 		String src = "TEST ;\r\n X foo \r\n";
@@ -31,8 +47,6 @@ public class XecuteCommandTest extends BaseTest {
 		assertTrue(cmd instanceof XecuteCommand);
 		XecuteCommand cc = (XecuteCommand)cmd;
 		assertNull(cc.getPostCondition());
-		
-		System.err.println("cmd = " + cmd);
 	}
 
 	@Test

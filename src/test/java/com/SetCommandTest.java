@@ -18,6 +18,22 @@ import com.validation.RoutineValidator;
 public class SetCommandTest extends BaseTest {
 
 	@Test
+	public void testZero() throws Exception {
+
+		String src = "TEST ;\r\n SET foo=0 \r\n";
+		FooParser parser = new FooParser(new StringReader(src));
+		parser.routine();
+		
+		RoutineValidator.visit(parser.getParseResult());
+		
+		Command cmd = findFirstCommand(parser.getParseResult(), SetCommand.class); 
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof SetCommand);
+		SetCommand cc = (SetCommand)cmd;
+		assertNull(cc.getPostCondition());
+	}
+
+	@Test
 	public void testOne() throws Exception {
 
 		String src = "TEST ;\r\n S foo=0 \r\n";
@@ -31,8 +47,6 @@ public class SetCommandTest extends BaseTest {
 		assertTrue(cmd instanceof SetCommand);
 		SetCommand cc = (SetCommand)cmd;
 		assertNull(cc.getPostCondition());
-		
-		System.err.println("cmd = " + cmd);
 	}
 
 	@Test

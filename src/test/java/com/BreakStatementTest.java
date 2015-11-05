@@ -18,6 +18,22 @@ import com.validation.RoutineValidator;
 public class BreakStatementTest extends BaseTest {
 
 	@Test
+	public void testZero() throws Exception {
+
+		String src = "TEST ;\r\n BREAK \r\n";
+		FooParser parser = new FooParser(new StringReader(src));
+		parser.routine();
+		
+		RoutineValidator.visit(parser.getParseResult());
+		
+		Command cmd = findFirstCommand(parser.getParseResult(), BreakCommand.class); 
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof BreakCommand);
+		BreakCommand bc = (BreakCommand)cmd;
+		assertNull(bc.getPostCondition());
+	}
+
+	@Test
 	public void testOne() throws Exception {
 
 		String src = "TEST ;\r\n B \r\n";
@@ -31,8 +47,6 @@ public class BreakStatementTest extends BaseTest {
 		assertTrue(cmd instanceof BreakCommand);
 		BreakCommand bc = (BreakCommand)cmd;
 		assertNull(bc.getPostCondition());
-		
-		System.err.println("cmd = " + cmd);
 	}
 
 	@Test
