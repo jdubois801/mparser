@@ -50,6 +50,12 @@ public class FooParser {
 		}
 		System.out.println("accept");
 	}
+	
+	public Routine parseResult;
+	
+	public Routine getParseResult() {
+	   return parseResult;
+	}
 }
 
 PARSER_END(FooParser)
@@ -155,71 +161,124 @@ TOKEN : {
  | < DIGIT : ["0"-"9"] >
 }
 
-SimpleNode routine() : {}
-{
-	routinehead()
-	routinebody()
-	{ return jjtThis; }
+SimpleNode routine() : {
+Routine result = new Routine();
+LineList node1 = null;
+Token n1;
 }
-
-void routinehead() : {}
 {
-	<NAME> ( (" ")* <COMMENT>)? <EOL>
-	{
-		System.out.println("routinehead()");
+	n1=routinehead()
+	node1=routinebody()
+	{ 
+		result.setName(n1==null?null:n1.toString());
+		result.setLineList(node1);
+		
+		parseResult = result;
+
+		return jjtThis; 
 	}
 }
 
-void routinebody() : {}
+Token routinehead() : {
+Token n1;
+}
 {
-	( line() )* ( <EOR> | <EOF> )
+	n1=<NAME> ( (" ")* <COMMENT>)? <EOL>
 	{
-		System.out.println("routinebody()");
+		return n1;
 	}
 }
 
-void line() : {}
-{
-	levelline() | formalline() 
+LineList routinebody() : {
+LineList result = new LineList();
+Line node1 = null;
 }
-
-void levelline() : {}
 {
-	( label() )? " " ( li() " " )* linebody()
+	( node1=line() {result.add(node1);} )* ( <EOR> | <EOF> )
 	{
-		System.out.println("levelline()");
+		return result;
 	}
 }
 
-void label() : {}
+Line line() : {
+Line node1 = null;
+}
 {
-	 <NAME> | <NUMBER>
+	node1=levelline() 
+	{ 
+		return node1;
+	}
+	| node1=formalline() 
+	{ 
+		return node1;
+	}
+}
+
+Line levelline() : {
+CommandList node1 = null;
+Line result = new Line();
+Token n1 = null;
+int indentation = 0;
+}
+{
+	( n1=label() )? " " ( li() " " {indentation++;})* node1=linebody()
 	{
-		System.out.println("label()");
+		result.setCommandList(node1);
+		result.setIndentation(indentation);
+		result.setLabel(n1==null?null:n1.toString());
+		return result;
+	}
+}
+
+Token label() : {
+Token n1;
+}
+{
+	n1=<NAME> 
+	{
+		return n1;
+	}
+	| n1=<NUMBER>
+	{
+		return n1;
 	}
 }
 
 void li() : {}
 {
 	"."
-	{
-		System.out.println("li()");
-	}
 }
 
-void formalline() : {}
+Line formalline() : {
+Line result = new Line();
+CommandList node1 = null;
+Token n1;
+}
 {
-	label() formallist() (" ")+ linebody()
+	n1=label() formallist() (" ")+ node1=linebody()
 	{
-		System.out.println("formalline()");
+		result.setCommandList(node1);
+		result.setLabel(n1==null?null:n1.toString());
+		return result;
 	}
 }
 
-void linebody() : {}
+CommandList linebody() : {
+CommandList result = null;
+}
 {
 	<COMMENT> <EOL>
-	| commandscomment() 
+	{
+		return new CommandList();
+	}
+	| result=commandscomment() 
+	{ 
+		return result;
+	}
 	| commandsextsyntax()
+	{ 
+		return new CommandList(); 
+	}
 }
 
 void formallist() : {}
@@ -230,19 +289,23 @@ void formallist() : {}
 	}
 }
 
-void formallistitem() : {}
+void formallistitem() : {
+Token n1;
+}
 {
-	"," <NAME>
+	"," n1=<NAME>
 	{
 		System.out.println("formallistitem()");
 	}
 }
 
-void commandscomment() : {}
+CommandList commandscomment() : {
+CommandList node1 = null;
+}
 {
-	commands() (" ")* (<COMMENT> | extsyntax())? <EOL>
+	node1=commands() (" ")* (<COMMENT> | extsyntax())? <EOL>
 	{
-		System.out.println("commandscomment()");
+		return node1;
 	}
 }
 
@@ -254,11 +317,15 @@ void commandsextsyntax() : {}
 	}
 }
 
-void commands() : {}
+CommandList commands() : {
+CommandList result = new CommandList();
+Command node1 = null;
+Command node2 = null;
+}
 {
-	command() ( (" ")* command() )*
+	node1=command() {result.add(node1);} ( (" ")* node2=command() {result.add(node2);} )*
 	{
-		System.out.println("commands()");
+		return result;
 	}
 }
 
