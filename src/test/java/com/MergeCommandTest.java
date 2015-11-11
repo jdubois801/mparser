@@ -1,19 +1,14 @@
 package com;
 
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.StringReader;
-import java.util.List;
+import org.junit.Test;
 
 import com.ast.Command;
 import com.ast.MergeCommand;
 import com.ast.Routine;
-import com.validation.RoutineValidator;
 
 public class MergeCommandTest extends BaseTest {
 
@@ -21,12 +16,9 @@ public class MergeCommandTest extends BaseTest {
 	public void testZero() throws Exception {
 
 		String src = "TEST ;\r\n MERGE foo=bar \r\n";
-		FooParser parser = new FooParser(new StringReader(src));
-		parser.routine();
-		
-		RoutineValidator.visit(parser.getParseResult());
-		
-		Command cmd = findFirstCommand(parser.getParseResult(), MergeCommand.class); 
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, MergeCommand.class);
+
 		assertNotNull(cmd);
 		assertTrue(cmd instanceof MergeCommand);
 		MergeCommand cc = (MergeCommand)cmd;
@@ -37,12 +29,9 @@ public class MergeCommandTest extends BaseTest {
 	public void testOne() throws Exception {
 
 		String src = "TEST ;\r\n M foo=bar \r\n";
-		FooParser parser = new FooParser(new StringReader(src));
-		parser.routine();
-		
-		RoutineValidator.visit(parser.getParseResult());
-		
-		Command cmd = findFirstCommand(parser.getParseResult(), MergeCommand.class); 
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, MergeCommand.class);
+
 		assertNotNull(cmd);
 		assertTrue(cmd instanceof MergeCommand);
 		MergeCommand cc = (MergeCommand)cmd;
@@ -53,16 +42,40 @@ public class MergeCommandTest extends BaseTest {
 	public void testTwo() throws Exception {
 
 		String src = "TEST ;\r\n M:0 foo=bar \r\n";
-		FooParser parser = new FooParser(new StringReader(src));
-		parser.routine();
-		
-		RoutineValidator.visit(parser.getParseResult());
-		
-		Command cmd = findFirstCommand(parser.getParseResult(), MergeCommand.class); 
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, MergeCommand.class);
+
 		assertNotNull(cmd);
 		assertTrue(cmd instanceof MergeCommand);
 		MergeCommand cc = (MergeCommand)cmd;
 		assertNotNull(cc.getPostCondition());
 	}
+
+	@Test
+	public void testThree() throws Exception {
+
+		String src = "TEST ;\r\n M @one,foo=bar,@two \r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, MergeCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof MergeCommand);
+		MergeCommand cc = (MergeCommand)cmd;
+		assertNull(cc.getPostCondition());
+	}
+
+	@Test
+	public void testFour() throws Exception {
+
+		String src = "TEST ;\r\n M foo=bar,one=two \r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, MergeCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof MergeCommand);
+		MergeCommand cc = (MergeCommand)cmd;
+		assertNull(cc.getPostCondition());
+	}
+
 }
 

@@ -5,7 +5,7 @@ import com.ast.*;
 public class CommandValidator {
 
 	public static void visit(Command cmd) {
-		System.err.println("CommandValidator.visit cmd = " + cmd);
+		//System.err.println("CommandValidator.visit cmd = " + cmd);
 		
 		if (cmd instanceof BreakCommand) {
 			BreakCommandValidator.visit((BreakCommand)cmd);

@@ -136,7 +136,6 @@ TOKEN : {
 // structured system variables
 TOKEN : {
     <SV_CHARACTER : "$C"("HARACTER")? >
-  | <SV_DEVICE : "$D"("EVICE")? >
   | <SV_GLOBAL : "$G"("LOBAL")? >
   | <SV_JOB : "$J"("OB")? >
   | <SV_LOCK : "$L"("OCK")? >
@@ -428,17 +427,22 @@ void closearg() : {}
 
 void deviceparams() : {}
 {
-	deviceparam()
-	{
-		System.err.println("deviceparams()");
-	}
-	// TODO there's also the (param : param : param ...)  notation
+	"(" ( deviceparam() ( ":" deviceparam() )* )? ")"
+    {
+        System.err.println("deviceparams() - 2");
+    }
+    | deviceparam()
+    {
+        System.err.println("deviceparams()");
+    }
 }
 
-void deviceparam() : {}
+void deviceparam() : {
+Token n1;
+}
 {
-	<NAME> "=" expr()
-	| <NAME>
+	n1=<NAME> "=" expr()
+	| n1=<NAME>
 	| expr()
 }
 
@@ -465,21 +469,34 @@ ArgList result = new ArgList();
 	}
 }
 
-void doarg() : {}
+void doarg() : {
+PostCondition node1 = null;
+}
 {
+    // TODO - entryref and labelref are ambiguous on token <NAME>
 	"@" expratom()
-	| entryref()
+    | externref() ( actuallist() )? ( node1=postcond() )? 
+	| entryref() ( node1=postcond() )?
+	| labelref() actuallist() ( node1=postcond() )? 
 }
 
 void entryref() : {}
 {
 	// TODO
-	"^" <NAME>
+	"^" ( ( "|" <NAME> "|" )? <NAME> | "@" expratom() )
 	{
 	}
-	| <NAME>  ( "+" <NUMBER> )?  ( "^" <NAME> )?
+	// TODO doarg() and entryref() are ambiguous on "@foo"
+	| <NAME> ( "+" <NUMBER> )?  ( "^" ( ( "|" <NAME> "|" )? <NAME> | "@" expratom() ) )?
 	{
 	}
+}
+
+void externref() : {}
+{
+    "&" ( <NAME> "." )? <NAME> ( "^" <NAME> )?
+    {
+    }
 }
 
 ElseCommand elsecommand() : {}
@@ -542,7 +559,11 @@ void gotoarg() : {
 PostCondition node1 = null;
 }
 {
-	entryref() ( node1=postcond() )?
+    "@" expratom()
+    {
+        // TODO - return something
+    }
+	| entryref() ( node1=postcond() )?
 	{
 		System.err.println("gotoarg()");
 	}
@@ -552,22 +573,46 @@ Command haltcommand() : {
 PostCondition node1 = null;
 Token n1;
 Command result = null;
+ArgList node2 = null;
 }
 {
 	// deal with <HANG> also
-	n1=<HALT> ( node1=postcond() )? 
+	n1=<HALT> ( node1=postcond() )? " " ( node2=hangarglist() )?
 	{
-		if ("HANG".equals(n1.toString())) {
-			// TODO - does HANG allow a post condition?
+		if ("HANG".equals(n1.toString())) {  System.err.println("HANG!");
 			result = new HangCommand();
 		}
-		else {
+		else if (node2 != null) { System.err.println("node2 != null");
+            result = new HangCommand();
+		}
+		else { System.err.println("HALT node2 == null");
 			result = new HaltCommand(node1);
 		}
+        result.setPostCondition(node1);
 		return result;
 	}
 }
 
+ArgList hangarglist() : {
+ArgList node1 = new ArgList();
+Token n1;
+Token n2;
+}
+{
+    hangarg() ( "," hangarg() )*
+    {
+        return node1;
+    }
+}
+
+void hangarg() : {
+Token n1;
+}
+{
+    "@" expratom()
+    | n1=<NUMBER>
+}
+    
 IfCommand ifcommand() : {
 ArgList node1 = new ArgList();
 }
@@ -608,7 +653,6 @@ ArgList node2 = null;
 {
 	<JOB> ( node1=postcond() )? " " node2=jobarglist()
 	{
-// TODO: implement
 		JobCommand node = new JobCommand(node1);
 		node.setArgList(node2);
 		return node;
@@ -617,24 +661,37 @@ ArgList node2 = null;
 
 ArgList jobarglist() : {
 ArgList result = new ArgList();
+Arg node1 = null;
+Arg node2 = null;
 }
 {
-	jobarg() {result.add(new Arg());} ( "," jobarg() {result.add(new Arg());} )*
+	node1=jobarg() {result.add(node1);} ( "," node2=jobarg() {result.add(node2);} )*
 	{
 		return result;
 	}
 }
 
-void jobarg() : {}
+Arg jobarg() : {
+Arg result = new Arg();
+}
 {
 	"@" expratom()
+	{
+	   return result;
+	}
+    | entryref() ( ":" jobparams() )?
+    {
+       return result;
+    }
 	| labelref() actuallist() ( ":" jobparams() )?
-	| entryref() ( ":" jobparams() )?
+    {
+       return result;
+    }
 }
 
 void labelref() : {}
 {
-	<NAME> ( "^" ( "|" environment() "|" )? )? <NAME>
+	<NAME> (( "^" ( "|" environment() "|" )? ) | " ") <NAME>
 	| "^" ( "|" environment() "|" )?  <NAME>
 }
 
@@ -645,12 +702,23 @@ void environment() : {}
 
 void actuallist() : {}
 {
-	"(" exprlist() ")"
+	"(" ( actualorexprlist() )? ")"
+}
+
+void actualorexprlist() : {}
+{
+    actualorexpr() ( "," actualorexpr() )*
+}
+
+void actualorexpr() : {}
+{
+    "." <NAME>
+    | expr()
 }
 
 void jobparams() : {}
 {
-	( processparams() )? expr()
+	( processparams() " " )? expr()
 }
 
 void processparams() : {}
@@ -731,13 +799,31 @@ PostCondition node1 = null;
 ArgList node2 = null;
 }
 {
-	<LOCK> ( node1=postcond() )? ( " " ( node2=lockarglist() )? )?
+	<LOCK> ( node1=postcond() )? ( " " ( node2=lockargparens() )? )?
 	{
-// TODO: implement
 		LockCommand node = new LockCommand(node1);
 		node.setArgList(node2);
 		return node;
 	}
+}
+
+ArgList lockargparens() : {
+ArgList result = null;
+}
+{
+    "(" ( result=lockarglist() )? ")"
+    {
+        if (result == null) {
+            result = new ArgList();
+        }
+        
+        return result;
+    }
+    |
+    result = lockarglist()
+    {
+        return result;
+    }
 }
 
 ArgList lockarglist() : {
@@ -748,12 +834,21 @@ ArgList result = new ArgList();
 	{
 		return result;
 	}
+	// TODO - the grammar is ambiguous here. there is also the possibility of a @expratom interpreted as a lock arg list
+	// but that is ambiguous with a @expratom interpreted as a nref.
+	|  "@" expratom()
+	{
+	   result.setLiveArg("expratom");  // TODO - get the correct value here.
+	   return result;
+	}
 }
 
-void lockarg() : {}
+void lockarg() : {
+Token n1;
+Expression node2 = null;
+}
 {
-	"@" expratom()
-	| ( "+" | "-" )? ( ( "(" nreflist() ")" ) | nref() ) ( expr() )?
+	( n1="+" | n1="-" )? ( ( "(" nreflist() ")" ) | nref() ) ( " " node2=expr() )?
 }
 
 void nreflist() : {}
@@ -864,6 +959,7 @@ void openarg() : {}
 	
 void openparameters() : {}
 {
+    // TODO - the grammar is ambiguous around deviceparams() = expr() and expr()
 	deviceparams() ( expr() ( ":" expr() )? )?
 	| ( deviceparams() )? "::" mnemonicspec()
 	| expr() ( ":" mnemonicspec() )?
@@ -921,9 +1017,9 @@ ArgList result = new ArgList();
 void readarg() : {}
 {
 	"@" expratom()
-	| "*" glvn() ( expr() )*
-	| glvn() ( "#" expr() )? ( expr() )?
-	| format()
+	| "*" glvn() ( " " expr() )?
+	| glvn() ( "#" expr() )? ( " " expr() )?
+	| ( format() )+
 	| <STRLIT>
 }
 
@@ -949,17 +1045,28 @@ SetCommand setcommand() : {
 
 ArgList setlist() : {
 ArgList result = new ArgList();
+Arg node1 = null;
+Arg node2 = null;
 }
 {
-	"@" expratom()
-	{ return result; }
-	| setatom() {result.add(new Arg());} ( "," setatom() {result.add(new Arg());} )*
-	{ return result; }
+	node1=setatom() {result.add(node1);} ( "," node2=setatom() {result.add(node2);} )*
+	{ 
+	   return result; 
+	}
 }
 
-void setatom() : {}
+Arg setatom() : {
+Arg result = new Arg();
+}
 {
-	setdestination() "=" expr()
+    "@" expratom()
+    {
+        return result;
+    }
+	| setdestination() "=" expr()
+	{
+	   return result;
+	}
 }
 
 void setdestination() : {}
@@ -983,7 +1090,7 @@ void setleft() : {System.err.println("setleft");}
 
 void leftrestricted() : {}
 {
-	<V_DEVICE>
+	( <V_DEVICE> | <F_DATA> )  // TODO - need to throw an exception on "$DATA" which does not match
 	| <V_KEY>
 	| <V_X>
 	| <V_Y>
@@ -1004,12 +1111,12 @@ void setev() : {}
 
 void setextract() : {}
 {
-	<F_EXTRACT> "(" glvn() "," expr() ( "," expr() )* ")"
+	<F_EXTRACT> "(" glvn() "," expr() ( "," expr() )? ")"
 }
 
 void setpiece() : {}
 {
-	<F_PIECE> "(" glvn() "," expr() ( "," expr() )* ( "," expr() )* ")"
+	<F_PIECE> "(" glvn() "," expr() ( "," expr() )? ( "," expr() )? ")"
 }
 
 UseCommand usecommand() : {
@@ -1028,18 +1135,28 @@ ArgList node2 = null;
 
 ArgList usearglist() : {
 ArgList result = new ArgList();
+Arg node1 = null;
+Arg node2 = null;
 }
 {
-	usearg() {result.add(new Arg());} ( "," usearg() {result.add(new Arg());} )*
+	node1=usearg() {result.add(node1);} ( "," node2=usearg() {result.add(node2);} )*
 	{
 		return result;
 	}
 }
 
-void usearg() : {}
+Arg usearg() : {
+Arg result = new Arg();
+}
 {
 	"@" expratom()
+	{
+	   return result;
+	}
 	| expr() ( ":" deviceparams() )? ( ":" mnemonicspace() )?
+	{
+	   return result;
+	}
 }
 
 ViewCommand viewcommand() : {
@@ -1070,20 +1187,36 @@ ArgList node2 = null;
 
 ArgList writearglist() : {
 ArgList result = new ArgList();
+Arg node1 = null;
+Arg node2 = null;
 }
 {
-	writearg() {result.add(new Arg());} ( "," writearg() {result.add(new Arg());} )*
+	node1=writearg() {result.add(node1);} ( "," node2=writearg() {result.add(node2);} )*
 	{
 		return result;
 	}
 }
 
-void writearg() : {}
+Arg writearg() : {
+Arg result = new Arg();
+}
 {
 	"@" expratom()
+	{
+	   return result;
+	}
 	| "*" expr()
-	| format()
+	{
+	   return result;
+	}
+	| ( format() )+
+	{
+	   return result;
+	}
 	| expr()
+	{
+	   return result;
+	}
 }
 
 XecuteCommand xecutecommand() : {
@@ -1195,7 +1328,7 @@ void ssvn() : {}  // TODO
 	{
 		System.err.println("ssvn(F_CHAR)");
 	}
-  | "^" <SV_DEVICE>
+  | "^" <V_DEVICE>
   | "^" <SV_GLOBAL>
   | "^" <SV_JOB>
   | "^" <SV_LOCK>

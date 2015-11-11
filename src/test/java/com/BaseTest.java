@@ -1,9 +1,11 @@
 package com;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.ast.*;
+import com.validation.RoutineValidator;
 
 public abstract class BaseTest {
 
@@ -44,5 +46,13 @@ public abstract class BaseTest {
 		
 		return result;
 		
+	}
+	
+	protected Routine parseAndValidate(String src) throws ParseException {
+		FooParser parser = new FooParser(new StringReader(src));
+		parser.routine();
+		RoutineValidator.visit(parser.getParseResult());
+		
+		return parser.getParseResult();
 	}
 }

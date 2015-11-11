@@ -1,19 +1,14 @@
 package com;
 
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.StringReader;
-import java.util.List;
+import org.junit.Test;
 
 import com.ast.Command;
 import com.ast.OpenCommand;
 import com.ast.Routine;
-import com.validation.RoutineValidator;
 
 public class OpenCommandTest extends BaseTest {
 
@@ -21,12 +16,9 @@ public class OpenCommandTest extends BaseTest {
 	public void testZero() throws Exception {
 
 		String src = "TEST ;\r\n OPEN foo \r\n";
-		FooParser parser = new FooParser(new StringReader(src));
-		parser.routine();
-		
-		RoutineValidator.visit(parser.getParseResult());
-		
-		Command cmd = findFirstCommand(parser.getParseResult(), OpenCommand.class); 
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, OpenCommand.class);
+
 		assertNotNull(cmd);
 		assertTrue(cmd instanceof OpenCommand);
 		OpenCommand cc = (OpenCommand)cmd;
@@ -37,12 +29,9 @@ public class OpenCommandTest extends BaseTest {
 	public void testOne() throws Exception {
 
 		String src = "TEST ;\r\n O foo \r\n";
-		FooParser parser = new FooParser(new StringReader(src));
-		parser.routine();
-		
-		RoutineValidator.visit(parser.getParseResult());
-		
-		Command cmd = findFirstCommand(parser.getParseResult(), OpenCommand.class); 
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, OpenCommand.class);
+
 		assertNotNull(cmd);
 		assertTrue(cmd instanceof OpenCommand);
 		OpenCommand cc = (OpenCommand)cmd;
@@ -53,16 +42,91 @@ public class OpenCommandTest extends BaseTest {
 	public void testTwo() throws Exception {
 
 		String src = "TEST ;\r\n O:0 foo \r\n";
-		FooParser parser = new FooParser(new StringReader(src));
-		parser.routine();
-		
-		RoutineValidator.visit(parser.getParseResult());
-		
-		Command cmd = findFirstCommand(parser.getParseResult(), OpenCommand.class); 
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, OpenCommand.class);
+
 		assertNotNull(cmd);
 		assertTrue(cmd instanceof OpenCommand);
 		OpenCommand cc = (OpenCommand)cmd;
 		assertNotNull(cc.getPostCondition());
 	}
+
+	@Test
+	public void testThree() throws Exception {
+
+		String src = "TEST ;\r\n O foo,1+2 \r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, OpenCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof OpenCommand);
+		OpenCommand cc = (OpenCommand)cmd;
+		assertNull(cc.getPostCondition());
+	}
+	
+	@Test
+	public void testFour() throws Exception {
+
+		String src = "TEST ;\r\n O foo:1+2 \r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, OpenCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof OpenCommand);
+		OpenCommand cc = (OpenCommand)cmd;
+		assertNull(cc.getPostCondition());
+	}
+
+	@Test
+	public void testFive() throws Exception {
+
+		String src = "TEST ;\r\n O @one,foo,@two \r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, OpenCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof OpenCommand);
+		OpenCommand cc = (OpenCommand)cmd;
+		assertNull(cc.getPostCondition());
+	}
+
+	@Test
+	public void testSix() throws Exception {
+
+		String src = "TEST ;\r\n O foo:1(2) \r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, OpenCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof OpenCommand);
+		OpenCommand cc = (OpenCommand)cmd;
+		assertNull(cc.getPostCondition());
+	}
+
+//	@Test
+//	public void testSeven() throws Exception {
+//
+//		String src = "TEST ;\r\n O foo:1:(2)3 \r\n";
+//		Routine routine = parseAndValidate(src); 
+//		Command cmd = findFirstCommand(routine, OpenCommand.class);
+//
+//		assertNotNull(cmd);
+//		assertTrue(cmd instanceof OpenCommand);
+//		OpenCommand cc = (OpenCommand)cmd;
+//		assertNull(cc.getPostCondition());
+//	}
+//
+//	@Test
+//	public void testEight() throws Exception {
+//
+//		String src = "TEST ;\r\n O foo:1(2)3:4 \r\n";
+//		Routine routine = parseAndValidate(src); 
+//		Command cmd = findFirstCommand(routine, OpenCommand.class);
+//
+//		assertNotNull(cmd);
+//		assertTrue(cmd instanceof OpenCommand);
+//		OpenCommand cc = (OpenCommand)cmd;
+//		assertNull(cc.getPostCondition());
+//	}
 }
 

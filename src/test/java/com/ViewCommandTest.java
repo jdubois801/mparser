@@ -10,6 +10,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.StringReader;
 import java.util.List;
 
+import com.ast.CloseCommand;
 import com.ast.Command;
 import com.ast.ViewCommand;
 import com.ast.Routine;
@@ -21,12 +22,9 @@ public class ViewCommandTest extends BaseTest {
 	public void testZero() throws Exception {
 
 		String src = "TEST ;\r\n VIEW \r\n";
-		FooParser parser = new FooParser(new StringReader(src));
-		parser.routine();
-		
-		RoutineValidator.visit(parser.getParseResult());
-		
-		Command cmd = findFirstCommand(parser.getParseResult(), ViewCommand.class); 
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, ViewCommand.class);
+
 		assertNotNull(cmd);
 		assertTrue(cmd instanceof ViewCommand);
 		ViewCommand cc = (ViewCommand)cmd;
@@ -37,12 +35,9 @@ public class ViewCommandTest extends BaseTest {
 	public void testOne() throws Exception {
 
 		String src = "TEST ;\r\n V \r\n";
-		FooParser parser = new FooParser(new StringReader(src));
-		parser.routine();
-		
-		RoutineValidator.visit(parser.getParseResult());
-		
-		Command cmd = findFirstCommand(parser.getParseResult(), ViewCommand.class); 
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, ViewCommand.class);
+
 		assertNotNull(cmd);
 		assertTrue(cmd instanceof ViewCommand);
 		ViewCommand cc = (ViewCommand)cmd;
@@ -53,12 +48,9 @@ public class ViewCommandTest extends BaseTest {
 	public void testTwo() throws Exception {
 
 		String src = "TEST ;\r\n V:0 \r\n";
-		FooParser parser = new FooParser(new StringReader(src));
-		parser.routine();
-		
-		RoutineValidator.visit(parser.getParseResult());
-		
-		Command cmd = findFirstCommand(parser.getParseResult(), ViewCommand.class); 
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, ViewCommand.class);
+
 		assertNotNull(cmd);
 		assertTrue(cmd instanceof ViewCommand);
 		ViewCommand cc = (ViewCommand)cmd;
