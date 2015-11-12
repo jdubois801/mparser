@@ -1,5 +1,6 @@
 package com;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -8,6 +9,7 @@ import org.junit.Test;
 
 import com.ast.Command;
 import com.ast.ForCommand;
+import com.ast.Line;
 import com.ast.Routine;
 
 public class ForCommandTest extends BaseTest {
@@ -76,5 +78,49 @@ public class ForCommandTest extends BaseTest {
 		ForCommand cc = (ForCommand)cmd;
 		assertNull(cc.getPostCondition());
 	}
+
+	// are indented lines correctly bound?
+	@Test
+	public void testFive() throws Exception {
+
+		String src = "TEST ;\r\n F \r\n . S a=0\r\n . S a=1\r\n . S b=2 Q\r\n Q\r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, ForCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof ForCommand);
+		ForCommand cc = (ForCommand)cmd;
+		assertNull(cc.getPostCondition());
+		
+		// the for command should have one child line with one command
+		assertNotNull(cc.getLineList());
+		assertNotNull(cc.getLineList().getLineList());
+		assertEquals(3, cc.getLineList().getLineList().size());
+	}
+	
+	// commands after a FOR command on a line wrapped into a new sub line?
+	@Test
+	public void testSix() throws Exception {
+
+		String src = "TEST ;\r\n F S b=2 Q\r\n Q\r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, ForCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof ForCommand);
+		ForCommand cc = (ForCommand)cmd;
+		assertNull(cc.getPostCondition());
+		
+		// the for command should have one child line with one command
+		assertNotNull(cc.getLineList());
+		assertNotNull(cc.getLineList().getLineList());
+		assertEquals(1, cc.getLineList().getLineList().size());
+		Line line = cc.getLineList().getLineList().get(0);
+		assertNotNull(line);
+		assertNotNull(line.getCommandList());
+		assertNotNull(line.getCommandList().getCommandList());
+		assertEquals(2, line.getCommandList().getCommandList().size());
+	}
+
 }
 

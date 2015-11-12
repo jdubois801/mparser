@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.ast.*;
+import com.post.RoutineProcessor;
 import com.validation.RoutineValidator;
 
 public abstract class BaseTest {
@@ -28,19 +29,31 @@ public abstract class BaseTest {
 	}
 
 	// find the first command of a matching class
+	// TODO - this implementation is crazy inefficient for large lists
 	public Command findFirstCommand(Routine routine, Class<?> clz) {
-		return findAllCommands(routine, clz).get(0);
+		Command result = null;
+		
+		List<Command> resultList = findAllCommands(routine, clz);
+		
+		if (resultList != null && !resultList.isEmpty()) {
+			result = resultList.get(0);
+		}
+		
+		return result;
 	}
 
 	private List<Command> findLines(Routine routine) {
 		List<Command> result = new ArrayList<>();
 		LineList ll = routine.getLineList();
 		
+		// TODO - add descent into embedded line lists under IF, ELSE, and FOR commands
 		if (ll != null) {
 			for (Line line : ll.getLineList()) {
 				CommandList cl = line.getCommandList();
 				
-				result.addAll(cl.getCommandList());
+				if (!cl.getCommandList().isEmpty()) {
+					result.addAll(cl.getCommandList());
+				}
 			}
 		}
 		
@@ -51,8 +64,12 @@ public abstract class BaseTest {
 	protected Routine parseAndValidate(String src) throws ParseException {
 		FooParser parser = new FooParser(new StringReader(src));
 		parser.routine();
-		RoutineValidator.visit(parser.getParseResult());
+		Routine routine = parser.getParseResult();
 		
-		return parser.getParseResult();
+		RoutineProcessor.visit(routine);
+		
+		RoutineValidator.visit(routine);
+		
+		return routine;
 	}
 }

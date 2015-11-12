@@ -4,6 +4,7 @@ public class ForCommand extends Command {
 	private Expression expr1;
 	private Expression expr2;
 	private Expression expr3;
+	private LineList lineList;
 
 	public void setExpression1(Expression expr) {
 		this.expr1 = expr;
@@ -28,5 +29,14 @@ public class ForCommand extends Command {
 	public Expression getExpression3() {
 		return expr3;
 	}
+
+	public LineList getLineList() {
+		return lineList;
+	}
+
+	public void setLineList(LineList lineList) {
+		this.lineList = lineList;
+	}
+	
 }
 
