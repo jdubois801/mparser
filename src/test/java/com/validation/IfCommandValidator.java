@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.IfCommand;
+import com.ast.command.IfCommand;
 
 public class IfCommandValidator {
 

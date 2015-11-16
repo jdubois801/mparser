@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.DoCommand;
+import com.ast.command.DoCommand;
 
 public class DoCommandValidator {
 

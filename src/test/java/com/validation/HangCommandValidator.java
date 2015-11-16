@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.HangCommand;
+import com.ast.command.HangCommand;
 
 public class HangCommandValidator {
 

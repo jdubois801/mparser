@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.MergeCommand;
+import com.ast.command.MergeCommand;
 
 public class MergeCommandValidator {
 

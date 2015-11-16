@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.HaltCommand;
+import com.ast.command.HaltCommand;
 
 public class HaltCommandValidator {
 

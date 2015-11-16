@@ -6,9 +6,9 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import com.ast.Command;
-import com.ast.ReadCommand;
 import com.ast.Routine;
+import com.ast.command.Command;
+import com.ast.command.ReadCommand;
 
 public class ReadCommandTest extends BaseTest {
 

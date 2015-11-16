@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.CloseCommand;
+import com.ast.command.CloseCommand;
 
 public class CloseCommandValidator {
 

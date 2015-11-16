@@ -9,9 +9,9 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.ast.Command;
-import com.ast.LockCommand;
 import com.ast.Routine;
+import com.ast.command.Command;
+import com.ast.command.LockCommand;
 
 public class LockCommandTest extends BaseTest {
 

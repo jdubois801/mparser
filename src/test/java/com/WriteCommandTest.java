@@ -6,9 +6,9 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import com.ast.Command;
 import com.ast.Routine;
-import com.ast.WriteCommand;
+import com.ast.command.Command;
+import com.ast.command.WriteCommand;
 
 public class WriteCommandTest extends BaseTest {
 

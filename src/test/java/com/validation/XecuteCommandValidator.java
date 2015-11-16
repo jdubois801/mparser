@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.XecuteCommand;
+import com.ast.command.XecuteCommand;
 
 public class XecuteCommandValidator {
 

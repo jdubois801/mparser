@@ -2,13 +2,13 @@ package com.post;
 
 import java.util.List;
 
-import com.ast.Command;
-import com.ast.CommandList;
-import com.ast.ElseCommand;
-import com.ast.ForCommand;
-import com.ast.IfCommand;
 import com.ast.Line;
 import com.ast.LineList;
+import com.ast.command.Command;
+import com.ast.command.CommandList;
+import com.ast.command.ElseCommand;
+import com.ast.command.ForCommand;
+import com.ast.command.IfCommand;
 
 public class LineListProcessor {
 

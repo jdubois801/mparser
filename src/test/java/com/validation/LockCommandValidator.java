@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.LockCommand;
+import com.ast.command.LockCommand;
 
 public class LockCommandValidator {
 

@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.ViewCommand;
+import com.ast.command.ViewCommand;
 
 public class ViewCommandValidator {
 

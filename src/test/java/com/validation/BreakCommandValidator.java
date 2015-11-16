@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.BreakCommand;
+import com.ast.command.BreakCommand;
 
 public class BreakCommandValidator {
 

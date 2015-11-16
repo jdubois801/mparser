@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.NewCommand;
+import com.ast.command.NewCommand;
 
 public class NewCommandValidator {
 

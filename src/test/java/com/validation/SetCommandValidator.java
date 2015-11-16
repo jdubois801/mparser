@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.SetCommand;
+import com.ast.command.SetCommand;
 
 public class SetCommandValidator {
 

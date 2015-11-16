@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.QuitCommand;
+import com.ast.command.QuitCommand;
 
 public class QuitCommandValidator {
 

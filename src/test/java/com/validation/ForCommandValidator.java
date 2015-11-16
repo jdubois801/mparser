@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.ForCommand;
+import com.ast.command.ForCommand;
 
 public class ForCommandValidator {
 

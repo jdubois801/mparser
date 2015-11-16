@@ -1,5 +1,7 @@
 package com.ast;
 
+import com.ast.command.CommandList;
+
 public class Line {
 	private String label;
 	private int indentation = 0;

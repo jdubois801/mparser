@@ -10,10 +10,10 @@ import static org.junit.Assert.assertTrue;
 import java.io.StringReader;
 import java.util.List;
 
-import com.ast.CloseCommand;
-import com.ast.Command;
-import com.ast.ViewCommand;
 import com.ast.Routine;
+import com.ast.command.CloseCommand;
+import com.ast.command.Command;
+import com.ast.command.ViewCommand;
 import com.validation.RoutineValidator;
 
 public class ViewCommandTest extends BaseTest {

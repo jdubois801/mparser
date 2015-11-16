@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.KillCommand;
+import com.ast.command.KillCommand;
 
 public class KillCommandValidator {
 

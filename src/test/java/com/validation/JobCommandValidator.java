@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.JobCommand;
+import com.ast.command.JobCommand;
 
 public class JobCommandValidator {
 

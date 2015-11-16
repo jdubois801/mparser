@@ -6,9 +6,9 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import com.ast.BreakCommand;
-import com.ast.Command;
 import com.ast.Routine;
+import com.ast.command.BreakCommand;
+import com.ast.command.Command;
 
 public class BreakCommandTest extends BaseTest {
 

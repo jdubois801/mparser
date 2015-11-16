@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.WriteCommand;
+import com.ast.command.WriteCommand;
 
 public class WriteCommandValidator {
 

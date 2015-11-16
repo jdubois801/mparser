@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.GotoCommand;
+import com.ast.command.GotoCommand;
 
 public class GotoCommandValidator {
 

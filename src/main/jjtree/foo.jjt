@@ -8,6 +8,8 @@ PARSER_BEGIN(FooParser)
 package com;
 import java.io.StringBufferInputStream;
 import com.ast.*;
+import com.ast.command.*;
+import com.ast.expression.*;
 
 public class FooParser {
 	public static final String TEST_DATA = 
@@ -56,6 +58,28 @@ public class FooParser {
 	public Routine getParseResult() {
 	   return parseResult;
 	}
+	
+	
+    public Expression lifeRightBind(Expression leftExpr, Expression rightExpr)
+    {
+        Expression result = leftExpr;
+        
+        if (rightExpr instanceof BinaryExpression) {
+            ((BinaryExpression)rightExpr).setLeftExpression(leftExpr);
+            result = rightExpr;
+        }
+        else if (rightExpr instanceof LogicalExpression) {
+            ((LogicalExpression)rightExpr).setLeftExpression(leftExpr);
+            result = rightExpr;
+        }
+        else if (rightExpr instanceof RelationExpression) {
+            ((RelationExpression)rightExpr).setLeftExpression(leftExpr);
+            result = rightExpr;
+        }
+        
+        return result;
+    }
+	
 }
 
 PARSER_END(FooParser)
@@ -137,7 +161,7 @@ TOKEN : {
 TOKEN : {
     <SV_CHARACTER : "$C"("HARACTER")? >
   | <SV_GLOBAL : "$G"("LOBAL")? >
-  | <SV_JOB : "$J"("OB")? >
+//  | <SV_JOB : "$J"("OB")? >
   | <SV_LOCK : "$L"("OCK")? >
   | <SV_ROUTINE : "$R"("OUTINE")? >
 //  | <SV_SYSTEM : "$S"("YSTEM")? >
@@ -620,7 +644,7 @@ ArgList node1 = new ArgList();
 	LOOKAHEAD( 3 )
 	<IF> " " ifarg() ( "," ifarg() )*
 	{
-// TODO: implement
+// TODO: add the ifarg() results to the ArgList
 		IfCommand node = new IfCommand();
 		node.setArgList(node1);
 		return node;
@@ -634,7 +658,8 @@ ArgList node1 = new ArgList();
 }
 
 
-void ifarg() : {System.err.println("ifarg()");}
+void ifarg() : {
+}
 {
 	expr()
 	{
@@ -1257,7 +1282,9 @@ Expression node2 = null;
 }
 {
 	":" node2=tvexpr()
-	{ return new PostCondition(node2); }
+	{ 
+	   return new PostCondition(node2); 
+	}
 }
 
 Expression tvexpr() : {
@@ -1265,113 +1292,547 @@ Expression node1 = null;
 }
 {
 	 node1=expr()
-	{ return new Expression(); }
+	{
+	   return node1; 
+	}
 }
 
-Expression expr() : {System.err.println("expr");}
+Expression expr() : {
+Expression node1 = null;
+Expression node2 = null;
+}
 {
-	 expratom() (exprtail())*
-	{ return new Expression(); }
+	 node1=expratom() ( node2=exprtail() {node1 = lifeRightBind(node1, node2);} )*
+	{
+	    return node1;
+	}
 }
 
-void expratom() : {System.err.println("expratom");}
+Expression expratom() : {
+Expression result = null;
+}
 {
-	glvn() 
-	| expritem() 
+	result=glvn()
+	{
+	   return result;
+	} 
+	| result=expritem() 
+	{
+	   return result;
+	}
 	| "@" expratom()
+	{
+	   return result;
+	}
 }
 
-void exprtail() : {System.err.println("exprtail");}
+Expression exprtail() : {
+Expression result = null;
+Expression node2 = null;
+Token n1 = null;
+Token n2 = null;
+}
 {
-	 binaryop() expratom()
-	 | ( "\'" )? relation() expratom()
-	 | ( "\'" )? logicalop() expratom()
-	 | ( "\'" )? "?" "."
-	 | ( "\'" )? "?" "@" expratom()
+	 ( n2="\'" )? n1=relation() node2=expratom()
+     {
+         String op = n2 == null ? n1.toString() : (n2.toString() + n1.toString());
+         return new RelationExpression(op, null, node2);
+     }
+	 | ( n2="\'" )? n1=logicalop() node2=expratom()
+     {
+         String op = n2 == null ? n1.toString() : (n2.toString() + n1.toString());
+         return new LogicalExpression(op, null, node2);
+     }
+	 | ( n2="\'" )? n1="?" "."  // TODO- this is for  "'?pattern" 
+     {
+         String op = n2 == null ? n1.toString() : (n2.toString() + n1.toString());
+         return new MatchExpression(op, null, "pattern");  // TODO - fix this pattern arg.
+     }
+	 | ( n2="\'" )? "?" "@" expratom()       // TODO - are you sure about this one?  (unless that's supposed to be a synonym for "pattern")
+     {
+         return result;
+     }
+     | n1=binaryop() node2=expratom()
+     {
+         return new BinaryExpression(n1.toString(), null, node2);
+     }
 }
 
-void glvn() : {} 
+Expression glvn() : {
+Expression result = null;
+} 
 {
 	LOOKAHEAD( 3 )
-	lvn() | gvn () | ssvn() 
+	result=lvn() 
+    {
+        return result;
+    }
+	| result=gvn () 
+    {
+        return result;
+    }
+	| result=ssvn() 
+    {
+        return result;
+    }
 }
 
-void lvn() : {} 
+Expression lvn() : {
+Token n1;
+Token n2 = null;
+ArgList node1 = null;
+} 
 {
-	<NAME> ( "(" ( exprlist() )? ")" )?
+    // TODO - the grammar is ambiguous around "@foo" interpreted as a lvn
+    // and it's worse around "@label@(expressions)"
+  	n1=<NAME> ( n2="(" ( node1=exprlist() )? ")" )?
 	{
-		System.err.println("lvn()");
+	   LocalVariableExpression result = new LocalVariableExpression(n1.toString(), null);
+	   result.setArgList(node1);
+	   
+	   if (n2 != null && node1 == null) {
+	       // don't return a null ArgList object for "()"
+	       result.setArgList(new ArgList());
+	   }
+	   return result;
 	}
 }
 
-void exprlist() : {}  // TODO
+ArgList exprlist() : {
+ArgList result = new ArgList();
+Expression node1 = null;
+Expression node2 = null;
+}  
 {
-	expr() ("," expr())* 
+	node1=expr() ("," node2=expr() {Arg arg2=new Arg();arg2.setExpression(node2);result.add(arg2);} )*
+	{
+	   Arg arg = new Arg();
+	   arg.setExpression(node1);
+	   result.add(arg);  // TODO- might be adding in the wrong order (with node1 last instead of first)
+	   return result;
+	} 
 }
 
-void gvn() : {}
+Expression gvn() : {
+GlobalVariableExpression result = null;
+Expression node1 = null;
+ArgList node2 = null;
+Token n1 = null;
+Token n2 = null;
+}
 {
-	"^" lvn()
+	"^" ( "|" n2=<NAME> "|" )?  node1=lvn()
 	{
-		System.err.println("gvn()");
+	   result = new GlobalVariableExpression((LocalVariableExpression)node1);
+	   if (n2 != null) {
+	       result.setEnvironmentName(n2.toString());
+	   }
+	   return result;
+	}
+	| "^" n1="(" ( node2=exprlist() )? ")"
+	{
+	   result = new GlobalVariableExpression();
+	   result.setArgList(node2);
+	   if (n1 != null && node2 == null) {
+	       result.setArgList(new ArgList());
+	   }
+	   return result;
 	}
 }
 
-void ssvn() : {}  // TODO
-{
-//	LOOKAHEAD( 2 )
-    "^" <SV_CHARACTER>
+Expression ssvn() : {
+StructuredSystemVariableExpression result = new StructuredSystemVariableExpression();
+Token n1;
+Token n2 = null;
+ArgList node2 = null;
+}
+{  // TODO - instead of parsing all of these var name tokens individually, you could parse them into a single name and post-process the AST.
+// and that will also help deal with $Zwhatever() variable names
+
+    "^" n1=<SV_CHARACTER> n2="(" ( node2=exprlist() )? ")"
 	{
-		System.err.println("ssvn(SV_CHARACTER)");
+        result.setName("$CHARACTER");
+        result.setArgList(node2);
+		return result;
 	}
-  | "^" <F_CHAR>
+    | "^" n1=<F_CHAR> n2="(" ( node2=exprlist() )? ")"  // silly alias for "$C"
 	{
-		System.err.println("ssvn(F_CHAR)");
+	   if (!"$C".equals(n1.toString())) {
+	       throw new RuntimeException("Error parsing stuff");
+	   }
+        result.setName("$CHARACTER");
+        result.setArgList(node2);
+        return result;
 	}
-  | "^" <V_DEVICE>
-  | "^" <SV_GLOBAL>
-  | "^" <SV_JOB>
-  | "^" <SV_LOCK>
-  | "^" <SV_ROUTINE>
-  | "^" <V_SYSTEM>
+    | "^" n1=<V_DEVICE> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$DEVICE");
+        result.setArgList(node2);
+        return result;
+    }
+    | "^" n1=<F_DATA> n2="(" ( node2=exprlist() )? ")"  // silly alias for "$D"
+    {
+       if (!"$D".equals(n1.toString())) {
+           throw new RuntimeException("Error parsing stuff");
+       }
+        result.setName("$DEVICE");
+        result.setArgList(node2);
+        return result;
+    }
+    | "^" n1=<SV_GLOBAL> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$GLOBAL");
+        result.setArgList(node2);
+        return result;
+    }
+    | "^" n1=<F_GET> n2="(" ( node2=exprlist() )? ")"  // silly alias for "$G"
+    {
+       if (!"$G".equals(n1.toString())) {
+           throw new RuntimeException("Error parsing stuff");
+       }
+        result.setName("$GLOBAL");
+        result.setArgList(node2);
+        return result;
+    }
+    | "^" n1=<V_JOB> n2="(" ( node2=exprlist() )? ")"
+    { 
+        result.setName("$JOB");
+        result.setArgList(node2);
+        return result;
+    }
+    | "^" n1=<F_JUSTIFY> n2="(" ( node2=exprlist() )? ")"  // silly alias for "$J"
+    {
+       if (!"$J".equals(n1.toString())) {
+           throw new RuntimeException("Error parsing stuff");
+       }
+        result.setName("$JOB");
+        result.setArgList(node2);
+        return result;
+    }
+    | "^" n1=<SV_LOCK> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$LOCK");
+        result.setArgList(node2);
+        return result;
+    }
+    | "^" n1=<F_LENGTH> n2="(" ( node2=exprlist() )? ")"  // silly alias for "$L"
+    {
+       if (!"$L".equals(n1.toString())) {
+           throw new RuntimeException("Error parsing stuff");
+       }
+        result.setName("$LOCK");
+        result.setArgList(node2);
+        return result;
+    }
+    | "^" n1=<SV_ROUTINE> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$ROUTINE");
+        result.setArgList(node2);
+        return result;
+    }
+    | "^" n1=<F_RANDOM> n2="(" ( node2=exprlist() )? ")"  // silly alias for "$R"
+    {
+       if (!"$R".equals(n1.toString())) {
+           throw new RuntimeException("Error parsing stuff");
+       }
+        result.setName("$ROUTINE");
+        result.setArgList(node2);
+        return result;
+    }
+    | "^" n1=<V_SYSTEM> n2="(" ( node2=exprlist() )? ")"
 	{
-		System.err.println("ssvn(V_SYSTEM)");
+        result.setName("$SYSTEM");
+        result.setArgList(node2);
+        return result;
 	}
+    | "^" n1=<F_SELECT> n2="(" ( node2=exprlist() )? ")"  // silly alias for "$S"
+    {
+       if (!"$S".equals(n1.toString())) {
+           throw new RuntimeException("Error parsing stuff");
+       }
+        result.setName("$SYSTEM");
+        result.setArgList(node2);
+        return result;
+    }
 }
 
-void expritem() : {}  // TODO
+Expression function() : {
+FunctionExpression result = new FunctionExpression();
+Token n1;
+Token n2 = null;
+ArgList node2 = null;
+}
+{  // TODO - instead of parsing all of these var name tokens individually, you could parse them into a single name and post-process the AST.
+// and that will also help deal with $Zwhatever() variable names
+
+    n1=<F_ASCII> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$ASCII");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_CHAR> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$CHAR");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_DATA> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$DATA");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_EXTRACT> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$EXTRACT");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_FIND> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$FIND");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_FNUMBER> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$FNUMBER");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_GET> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$GET");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_JUSTIFY> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$JUSTIFY");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_LENGTH> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$LENGTH");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_NAME> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$NAME");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_ORDER> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$ORDER");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_PIECE> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$PIECE");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_QLENGTH> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$QLENGTH");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_QSUBSCRIPT> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$QSUBSCRIPT");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_QUERY> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$QUERY");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_RANDOM> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$RANDOM");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_REVERSE> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$REVERSE");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_SELECT> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$SELECT");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_STACK> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$STACK");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_TEXT> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$TEXT");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_TRANSLATE> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$TRANSLATE");
+        result.setArgList(node2);
+        return result;
+    }
+    | n1=<F_VIEW> n2="(" ( node2=exprlist() )? ")"
+    {
+        result.setName("$VIEW");
+        result.setArgList(node2);
+        return result;
+    }
+}
+    
+    
+Expression expritem() : {
+Expression result = null;
+Expression node1 = null;
+Token n1 = null;
+}  // TODO
 {
 // strlit
 // numlit
 // exfunc
-// exvar 
-// svn
+// exvar   $externref or $$labelref
+// svn   $X, $DEVICE, and so on...
 // function
 // unaryop expratom
 // ( expr )
 
-	<NUMBER> 
-       | <STRLIT>
-       | unaryop() expratom()
-       | "(" expr() ")"
+	n1=<NUMBER> 
+    {
+        return new NumericConstant(n1.toString());
+    }
+    | n1=<STRLIT>
+    {
+        return new StringConstant(n1.toString());
+    }
+    | n1=unaryop() node1=expratom()
+    {
+        return new UnaryExpression(n1.toString(), node1);
+    }
+    | "(" node1=expr() ")"
+    {
+        return node1;   
+    }
+    | node1=function()
+    {
+        return node1;
+    }
 }
 
-void unaryop() : {}
+Token unaryop() : {
+Token n1 = null;
+}
 {
-	"\'" | "+" | "-"
+	n1="\'" 
+    {
+    return n1;
+    }
+	| n1="+" 
+    {
+    return n1;
+    }
+	| n1="-"
+	{
+	return n1;
+	}
 }
 
-void binaryop() : {}
+Token binaryop() : {
+Token n1 = null;
+}
 {
-	"_" | "+" | "-" | "*" | "/" | "#" | "\\" | "**"
+	n1="_" 
+    {
+       return n1;
+    }
+	| n1="+" 
+    {
+       return n1;
+    }
+	| n1="-" 
+    {
+       return n1;
+    }
+	| n1="*" 
+    {
+       return n1;
+    }
+	| n1="/" 
+    {
+       return n1;
+    }
+	| n1="#" 
+    {
+       return n1;
+    }
+	| n1="\\" 
+    {
+       return n1;
+    }
+	| n1="**"
+	{
+	   return n1;
+	}
 }
 
-void relation() : {}
+Token relation() : {
+Token n1 = null;
+}
 {
-	"=" | "<" | ">" | "]" | "[" | "]]"
+	n1="=" 
+    {
+       return n1;
+    }
+	| n1="<" 
+    {
+       return n1;
+    }
+	| n1=">" 
+    {
+       return n1;
+    }
+	| n1="]" 
+    {
+       return n1;
+    }
+	| n1="[" 
+    {
+       return n1;
+    }
+	| n1="]]"
+	{
+	   return n1;
+	}
 }
 
-void logicalop() : {}
+Token logicalop() : {
+Token n1 = null;
+}
 {
-	"&" | "!" 
+	n1="&" 
+	{
+    return n1;
+    }
+	| n1="!" 
+    {
+    return n1;
+    }
 }

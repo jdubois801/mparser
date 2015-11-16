@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.ReadCommand;
+import com.ast.command.ReadCommand;
 
 public class ReadCommandValidator {
 

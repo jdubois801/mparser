@@ -1,7 +1,7 @@
 package com.validation;
 
-import com.ast.Command;
-import com.ast.CommandList;
+import com.ast.command.Command;
+import com.ast.command.CommandList;
 
 public class CommandListValidator {
 

@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.ElseCommand;
+import com.ast.command.ElseCommand;
 
 public class ElseCommandValidator {
 

@@ -7,10 +7,10 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import com.ast.Command;
-import com.ast.ForCommand;
 import com.ast.Line;
 import com.ast.Routine;
+import com.ast.command.Command;
+import com.ast.command.ForCommand;
 
 public class ForCommandTest extends BaseTest {
 

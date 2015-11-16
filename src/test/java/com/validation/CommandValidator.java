@@ -1,6 +1,29 @@
 package com.validation;
 
 import com.ast.*;
+import com.ast.command.BreakCommand;
+import com.ast.command.CloseCommand;
+import com.ast.command.Command;
+import com.ast.command.DoCommand;
+import com.ast.command.ElseCommand;
+import com.ast.command.ForCommand;
+import com.ast.command.GotoCommand;
+import com.ast.command.HaltCommand;
+import com.ast.command.HangCommand;
+import com.ast.command.IfCommand;
+import com.ast.command.JobCommand;
+import com.ast.command.KillCommand;
+import com.ast.command.LockCommand;
+import com.ast.command.MergeCommand;
+import com.ast.command.NewCommand;
+import com.ast.command.OpenCommand;
+import com.ast.command.QuitCommand;
+import com.ast.command.ReadCommand;
+import com.ast.command.SetCommand;
+import com.ast.command.UseCommand;
+import com.ast.command.ViewCommand;
+import com.ast.command.WriteCommand;
+import com.ast.command.XecuteCommand;
 
 public class CommandValidator {
 

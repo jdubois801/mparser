@@ -1,6 +1,6 @@
 package com.validation;
 
-import com.ast.UseCommand;
+import com.ast.command.UseCommand;
 
 public class UseCommandValidator {
 
