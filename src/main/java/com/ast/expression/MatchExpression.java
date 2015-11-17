@@ -3,11 +3,11 @@ package com.ast.expression;
 public class MatchExpression extends Expression {
 	private String operator;
 	private Expression leftExpression;
-	private String pattern;
+	private Expression pattern;
 	
 	public MatchExpression() {}
 	
-	public MatchExpression(String operator, Expression left, String pattern) {
+	public MatchExpression(String operator, Expression left, Expression pattern) {
 		this.operator = operator;
 		this.leftExpression = left;
 		this.pattern = pattern;
@@ -29,11 +29,11 @@ public class MatchExpression extends Expression {
 		this.leftExpression = leftExpression;
 	}
 
-	public String getPattern() {
+	public Expression getPattern() {
 		return pattern;
 	}
 
-	public void setPattern(String pattern) {
+	public void setPattern(Expression pattern) {
 		this.pattern = pattern;
 	}
 }

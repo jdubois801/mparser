@@ -60,7 +60,7 @@ public class FooParser {
 	}
 	
 	
-    public Expression lifeRightBind(Expression leftExpr, Expression rightExpr)
+    public Expression leftRightBind(Expression leftExpr, Expression rightExpr)
     {
         Expression result = leftExpr;
         
@@ -74,6 +74,10 @@ public class FooParser {
         }
         else if (rightExpr instanceof RelationExpression) {
             ((RelationExpression)rightExpr).setLeftExpression(leftExpr);
+            result = rightExpr;
+        }
+        else if (rightExpr instanceof MatchExpression) {
+            ((MatchExpression)rightExpr).setLeftExpression(leftExpr);
             result = rightExpr;
         }
         
@@ -239,16 +243,21 @@ Line node1 = null;
 
 Line levelline() : {
 CommandList node1 = null;
-Line result = new Line();
+Line result = null;
 Token n1 = null;
 int indentation = 0;
 }
 {
-	( n1=label() )? " " ( li() " " {indentation++;})* node1=linebody()
+	( n1=label() )? " " ( ". " {indentation++;})* node1=linebody()
 	{
+	    if (n1 != null) {
+	       result = new LabelLine(n1.toString());
+	    }
+	    else {
+	       result = new Line();
+	    }
 		result.setCommandList(node1);
 		result.setIndentation(indentation);
-		result.setLabel(n1==null?null:n1.toString());
 		return result;
 	}
 }
@@ -267,21 +276,19 @@ Token n1;
 	}
 }
 
-void li() : {}
-{
-	"."
-}
-
 Line formalline() : {
-Line result = new Line();
+FormalLine result = null;
 CommandList node1 = null;
+ParamList paramlist = null;
 Token n1;
 }
 {
-	n1=label() formallist() (" ")+ node1=linebody()
+	n1=label() paramlist = formallist() (" ")+ node1=linebody()
 	{
+	    result = new FormalLine(n1.toString());
+	    result.setParamList(paramlist);
 		result.setCommandList(node1);
-		result.setLabel(n1==null?null:n1.toString());
+		result.setLabel(n1==null ? null : n1.toString());
 		return result;
 	}
 }
@@ -298,45 +305,49 @@ CommandList result = null;
 	{ 
 		return result;
 	}
-	| commandsextsyntax()
+	| result=commandsextsyntax()
 	{ 
-		return new CommandList(); 
+		return result; 
 	}
 }
 
-void formallist() : {}
-{
-	"(" (<NAME> ( formallistitem() )* )? ")"
-	{
-		System.out.println("formallist()");
-	}
-}
-
-void formallistitem() : {
-Token n1;
+ParamList formallist() : {
+ParamList result = new ParamList();
+Token n1 = null;
+Token n2 = null;
 }
 {
-	"," n1=<NAME>
+	"(" (n1=<NAME> {result.add(new Param(n1.toString()));}  ( "," n2=<NAME> {result.add(new Param(n2.toString()));} )* )? ")"
 	{
-		System.out.println("formallistitem()");
+		return result;
 	}
 }
 
 CommandList commandscomment() : {
-CommandList node1 = null;
+CommandList result = null;
+Expression ext = null;
 }
 {
-	node1=commands() (" ")* (<COMMENT> | extsyntax())? <EOL>
+	result=commands() (" ")* ( <COMMENT> | ext=extsyntax() )? <EOL>
 	{
-		return node1;
+	    if (ext != null) {
+            result.setExtSyntax(ext);	           
+	    }
+	    return result;
 	}
 }
 
-void commandsextsyntax() : {}
+CommandList commandsextsyntax() : {
+CommandList result = new CommandList();
+Expression ext = null;
+}
 {
-	extsyntax() <EOL>
+	ext=extsyntax() <EOL>
 	{
-		System.out.println("commandsextsyntax()");
+        if (ext != null) {
+            result.setExtSyntax(ext);              
+        }
+		return result;
 	}
 }
 
@@ -400,11 +411,14 @@ Command node1 = null;
 		{return node1;}
 }
 
-void extsyntax() : {}  // TODO
+ExtSyntaxConstant extsyntax() : {
+ExtSyntaxConstant result = null;
+}
 {
 	"&SQL" "(" (".")* ")" 
 	{
-		System.out.println("extsyntax()");
+	    result = new ExtSyntaxConstant("sql");
+	    return result;
 	}
 }
 
@@ -425,49 +439,82 @@ ArgList node2 = null;
 {
 	<CLOSE> ( node1=postcond() )? " " node2=closearglist()
 	{
-// TODO: implement
-		CloseCommand node = new CloseCommand(node1);
-		node.setArgList(node2);
-		return node;
+		CloseCommand result = new CloseCommand(node1);
+		result.setArgList(node2);
+		return result;
 	}
 }
 
 ArgList closearglist() : {
 ArgList result = new ArgList();
+Arg node1 = null;
+Arg node2 = null;
 }
 {
-	closearg() {result.add(new Arg());} ( "," closearg() {result.add(new Arg());} )*
+	node1=closearg() {result.add(node1);} ( "," node2=closearg() {result.add(node2);} )*
 	{
-		System.err.println("closearglist()");
 		return result;
 	}
 }
 
-void closearg() : {}
+Arg closearg() : {
+CloseArg result = new CloseArg();
+Expression node1 = null;
+DeviceParamList node2 = null;
+}
 {
-	"@" expratom()
-	| expr() ( ":" deviceparams() )?
+	"@" node1=expratom()
+	{
+	   result.setExpression(new IndirectExpression(node1));
+	   return result;
+	}
+	| node1=expr() ( ":" node2=deviceparams() )?
+	{
+	   result.setExpression(node1);
+	   result.setDeviceParamList(node2);
+	   return result;
+	}
 }
 
-void deviceparams() : {}
+DeviceParamList deviceparams() : {
+DeviceParamList result = new DeviceParamList();
+DeviceParam node1 = null;
+DeviceParam node2 = null;
+}
 {
-	"(" ( deviceparam() ( ":" deviceparam() )* )? ")"
+	"(" ( node1=deviceparam() {result.add(node1);} ( ":" node2=deviceparam() {result.add(node2);} )* )? ")"
     {
-        System.err.println("deviceparams() - 2");
+        return result;
     }
-    | deviceparam()
+    | node1=deviceparam()
     {
-        System.err.println("deviceparams()");
+        result.add(node1);
+        return result;
     }
 }
 
-void deviceparam() : {
+DeviceParam deviceparam() : {
+DeviceParam result = new DeviceParam();
 Token n1;
+Expression node2 = null;
 }
 {
-	n1=<NAME> "=" expr()
+	n1=<NAME> "=" node2=expr()
+	{
+        result.setName(n1.toString());
+        result.setExpression(node2);
+	    return result;
+	}
 	| n1=<NAME>
-	| expr()
+    {
+        result.setName(n1.toString());
+        return result;
+    }
+	| node2=expr()
+    { 
+        result.setExpression(node2);
+        return result;
+    }
 }
 
 DoCommand docommand() : {
@@ -477,49 +524,98 @@ ArgList node2 = null;
 {
 	<DO> ( node1=postcond() )? ( (" " node2=doarglist() ) | (" ")? )
 	{
-// TODO: implement
 		DoCommand node = new DoCommand(node1);
+		node.setArgList(node2);
 		return node;
 	}
 }
 
 ArgList doarglist() : {
 ArgList result = new ArgList();
+Arg node1 = null;
+Arg node2 = null;
 }
 {
-	doarg() {result.add(new Arg());} ( "," doarg() {result.add(new Arg());} )*
+	node1=doarg() {result.add(node1);} ( "," node2=doarg() {result.add(node2);} )*
 	{
 		return result;
 	}
 }
 
-void doarg() : {
+Arg doarg() : {
+Arg result = new Arg();
+Expression node2 = null;
 PostCondition node1 = null;
 }
 {
     // TODO - entryref and labelref are ambiguous on token <NAME>
-	"@" expratom()
-    | externref() ( actuallist() )? ( node1=postcond() )? 
-	| entryref() ( node1=postcond() )?
-	| labelref() actuallist() ( node1=postcond() )? 
+	"@" node2=expratom()
+	{
+	   return result;
+	}
+    | node2=externref() ( actuallist() )? ( node1=postcond() )? 
+    {
+        if (node1 != null) {
+            ConditionalArg condArg = new ConditionalArg();
+            condArg.setCondition(node1.getExpr());
+            condArg.setExpression(node2);
+            return condArg;
+        }
+        result.setExpression(node2);
+        return result;
+    }
+	| node2=entryref() ( node1=postcond() )?
+    {
+        if (node1 != null) {
+            ConditionalArg condArg = new ConditionalArg();
+            condArg.setCondition(node1.getExpr());
+            condArg.setExpression(node2);
+            return condArg;
+        }
+        result.setExpression(node2);
+        return result;
+    }
+	| node2=labelref() actuallist() ( node1=postcond() )? 
+    {
+        if (node1 != null) {
+            ConditionalArg condArg = new ConditionalArg();
+            condArg.setCondition(node1.getExpr());
+            condArg.setExpression(node2);
+            return condArg;
+        }
+        result.setExpression(node2);
+        return result;
+    }
 }
 
-void entryref() : {}
+Expression entryref() : {
+EntryRef result = new EntryRef();
+Token n1 = null;
+}
 {
 	// TODO
-	"^" ( ( "|" <NAME> "|" )? <NAME> | "@" expratom() )
+	"^" ( ( "|" <NAME> "|" )? n1=<NAME> | "@" expratom() )
 	{
+	   if (n1 != null) {
+           result.setName(n1.toString());
+       }
+	   return result;
 	}
 	// TODO doarg() and entryref() are ambiguous on "@foo"
-	| <NAME> ( "+" <NUMBER> )?  ( "^" ( ( "|" <NAME> "|" )? <NAME> | "@" expratom() ) )?
+	| n1=<NAME> ( "+" <NUMBER> )?  ( "^" ( ( "|" <NAME> "|" )? <NAME> | "@" expratom() ) )?
 	{
+	    result.setName(n1.toString());
+	    return result;
 	}
 }
 
-void externref() : {}
+Expression externref() : {
+ExternRef result = new ExternRef();
+}
 {
     "&" ( <NAME> "." )? <NAME> ( "^" <NAME> )?
     {
+        return result;
     }
 }
 
@@ -714,10 +810,18 @@ Arg result = new Arg();
     }
 }
 
-void labelref() : {}
+Expression labelref() : {
+LabelRef result = new LabelRef();
+}
 {
 	<NAME> (( "^" ( "|" environment() "|" )? ) | " ") <NAME>
+	{
+	   return result;
+	}
 	| "^" ( "|" environment() "|" )?  <NAME>
+    {
+       return result;
+    }
 }
 
 void environment() : {}
@@ -807,15 +911,21 @@ void lnamelist() : {}
 	}
 }
 
-void lname() : {}
+Arg lname() : {
+Arg result = new Arg();
+Expression node1 = null;
+Token n1;
+}
 {
-	"@" expratom() 
+	"@" node1=expratom() 
 	{
-		System.out.println("lname()");
+	    result.setExpression(new IndirectExpression(node1));
+		return result;
 	}
-	| <NAME>
+	| n1=<NAME>
 	{
-		System.out.println("lname()");
+	    result.setExpression(new StringConstant(n1.toString()));
+	    return result;
 	}
 }
 
@@ -1082,10 +1192,12 @@ Arg node2 = null;
 
 Arg setatom() : {
 Arg result = new Arg();
+Expression node1 = null;
 }
 {
-    "@" expratom()
+    "@" node1=expratom()
     {
+        result.setExpression(new IndirectExpression(node1));
         return result;
     }
 	| setdestination() "=" expr()
@@ -1105,7 +1217,9 @@ void setleftlist() : {}
 	setleft() ( "," setleft() )*
 }
 
-void setleft() : {System.err.println("setleft");}
+void setleft() : {
+Expression node1 = null;
+}
 {
 	leftrestricted()
 	| leftexpr()
@@ -1302,7 +1416,7 @@ Expression node1 = null;
 Expression node2 = null;
 }
 {
-	 node1=expratom() ( node2=exprtail() {node1 = lifeRightBind(node1, node2);} )*
+	 node1=expratom() ( node2=exprtail() {node1 = leftRightBind(node1, node2);} )*
 	{
 	    return node1;
 	}
@@ -1312,15 +1426,15 @@ Expression expratom() : {
 Expression result = null;
 }
 {
-	result=glvn()
+    "@" result=expratom()
+    {
+       return new IndirectExpression(result);
+    }
+	| result=glvn()
 	{
 	   return result;
 	} 
 	| result=expritem() 
-	{
-	   return result;
-	}
-	| "@" expratom()
 	{
 	   return result;
 	}
@@ -1346,11 +1460,12 @@ Token n2 = null;
 	 | ( n2="\'" )? n1="?" "."  // TODO- this is for  "'?pattern" 
      {
          String op = n2 == null ? n1.toString() : (n2.toString() + n1.toString());
-         return new MatchExpression(op, null, "pattern");  // TODO - fix this pattern arg.
+         return new MatchExpression(op, null, new StringConstant("pattern"));  // TODO - fix this pattern arg.
      }
-	 | ( n2="\'" )? "?" "@" expratom()       // TODO - are you sure about this one?  (unless that's supposed to be a synonym for "pattern")
-     {
-         return result;
+	 | ( n2="\'" )? n1="?" "@" node2=expratom()    
+	 {
+         String op = n2 == null ? n1.toString() : (n2.toString() + n1.toString());
+         return new MatchExpression(op, null, new IndirectExpression(node2)); 
      }
      | n1=binaryop() node2=expratom()
      {
