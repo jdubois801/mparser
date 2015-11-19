@@ -11,6 +11,8 @@ import com.ast.Line;
 import com.ast.Routine;
 import com.ast.command.Command;
 import com.ast.command.ForCommand;
+import com.ast.expression.LocalVariableExpression;
+import com.ast.expression.NumericConstant;
 
 public class ForCommandTest extends BaseTest {
 
@@ -25,6 +27,11 @@ public class ForCommandTest extends BaseTest {
 		assertTrue(cmd instanceof ForCommand);
 		ForCommand cc = (ForCommand)cmd;
 		assertNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getDestination());
+		assertTrue(cc.getDestination() instanceof LocalVariableExpression);
+		LocalVariableExpression lvexpr = (LocalVariableExpression)cc.getDestination();
+		assertEquals("foo", lvexpr.getName());
 	}
 
 	@Test
@@ -122,5 +129,30 @@ public class ForCommandTest extends BaseTest {
 		assertEquals(2, line.getCommandList().getCommandList().size());
 	}
 
+	@Test
+	public void testSeven() throws Exception {
+
+		String src = "TEST ;\r\n F %(2)=0 \r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, ForCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof ForCommand);
+		ForCommand cc = (ForCommand)cmd;
+		assertNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getDestination());
+		assertTrue(cc.getDestination() instanceof LocalVariableExpression);
+		LocalVariableExpression lvexpr = (LocalVariableExpression)cc.getDestination();
+		assertEquals("%", lvexpr.getName());
+		assertNotNull(lvexpr.getArgList());
+		assertNotNull(lvexpr.getArgList().getArgList());
+		assertEquals(1, lvexpr.getArgList().getArgList().size());
+		Arg arg0 = lvexpr.getArgList().getArgList().get(0);
+		assertNotNull(arg0.getExpression());
+		assertTrue(arg0.getExpression() instanceof NumericConstant);
+		NumericConstant nconst = (NumericConstant)arg0.getExpression();
+		assertEquals("2", nconst.getValue());
+	}
 }
 

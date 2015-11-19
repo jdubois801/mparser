@@ -1,5 +1,6 @@
 package com.ast;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -9,6 +10,7 @@ import org.junit.Test;
 import com.ast.Routine;
 import com.ast.command.Command;
 import com.ast.command.HaltCommand;
+import com.ast.expression.NumericConstant;
 
 public class HaltCommandTest extends BaseTest {
 
@@ -49,6 +51,10 @@ public class HaltCommandTest extends BaseTest {
 		assertTrue(cmd instanceof HaltCommand);
 		HaltCommand cc = (HaltCommand)cmd;
 		assertNotNull(cc.getPostCondition());
+		assertNotNull(cc.getPostCondition().getExpr());
+		assertTrue(cc.getPostCondition().getExpr() instanceof NumericConstant);
+		NumericConstant nconst = (NumericConstant)cc.getPostCondition().getExpr();
+		assertEquals("0", nconst.getValue());
 	}
 }
 

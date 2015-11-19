@@ -4,10 +4,19 @@ import com.ast.LineList;
 import com.ast.expression.Expression;
 
 public class ForCommand extends Command {
+	private Expression destination;
 	private Expression expr1;
 	private Expression expr2;
 	private Expression expr3;
 	private LineList lineList;
+
+	public Expression getDestination() {
+		return destination;
+	}
+
+	public void setDestination(Expression destination) {
+		this.destination = destination;
+	}
 
 	public void setExpression1(Expression expr) {
 		this.expr1 = expr;

@@ -89,6 +89,10 @@ public class FooParser {
 PARSER_END(FooParser)
 
 
+// sql syntax
+TOKEN : {
+   < SQL : "&SQL(" (~["\n","\r"])* >
+}
 
 // basic commands
 TOKEN : {
@@ -413,11 +417,13 @@ Command node1 = null;
 
 ExtSyntaxConstant extsyntax() : {
 ExtSyntaxConstant result = null;
+Token n1 = null;
 }
 {
-	"&SQL" "(" (".")* ")" 
-	{
-	    result = new ExtSyntaxConstant("sql");
+	n1=<SQL> 
+	{ 
+	    String txt = n1.toString();
+	    result = new ExtSyntaxConstant(txt.substring(5, txt.length()-1));
 	    return result;
 	}
 }
@@ -674,16 +680,18 @@ ElseCommand elsecommand() : {}
 }
 
 ForCommand forcommand() : {
+Expression dest = null;
 Expression node1 = null;
 Expression node2 = null;
 Expression node3 = null;
 }
 {
 	LOOKAHEAD( 3 )
-	<FOR> " " lvn() "=" node1=expr() ( ":" node2=expr() )? ( ":" node3=expr() )?
+	<FOR> " " dest=lvn() "=" node1=expr() ( ":" node2=expr() )? ( ":" node3=expr() )?
 	{
 // TODO: implement
 		ForCommand node = new ForCommand();
+		node.setDestination(dest);
 		node.setExpression1(node1);
 		node.setExpression2(node2);
 		node.setExpression3(node3);
@@ -702,7 +710,6 @@ ArgList node2 = null;
 {
 	<GOTO> ( node1=postcond() )? " " node2=gotoargs()
 	{
-// TODO: implement
 		GotoCommand node = new GotoCommand(node1);
 		node.setArgList(node2);
 		return node;
@@ -711,25 +718,35 @@ ArgList node2 = null;
 
 ArgList gotoargs() : {
 ArgList result = new ArgList();
+Arg node1 = null;
+Arg node2 = null;
 }
 {
-	gotoarg() {result.add(new Arg());} ( "," gotoarg() {result.add(new Arg());} )*
+	node1=gotoarg() {result.add(node1);} ( "," node2=gotoarg() {result.add(node2);} )*
 	{
 		return result;
 	}
 }
 
-void gotoarg() : {
+Arg gotoarg() : {
+Arg result = new Arg();
 PostCondition node1 = null;
+Expression node2 = null;
 }
 {
-    "@" expratom()
+    "@" node2=expratom()
     {
-        // TODO - return something
+       result.setExpression(new IndirectExpression(node2));
+       return result;
     }
-	| entryref() ( node1=postcond() )?
+	| node2=entryref() ( node1=postcond() )?
 	{
-		System.err.println("gotoarg()");
+	   if (node1 != null) {
+	       result = new ConditionalArg();
+	       ((ConditionalArg)result).setCondition(node1.getExpr()); 
+	   }
+	   result.setExpression(node2);
+	   return result;
 	}
 }
 
@@ -748,6 +765,7 @@ ArgList node2 = null;
 		}
 		else if (node2 != null) {
             result = new HangCommand();
+            ((HangCommand)result).setArgList(node2);
 		}
 		else {
 			result = new HaltCommand(node1);
@@ -758,35 +776,48 @@ ArgList node2 = null;
 }
 
 ArgList hangarglist() : {
-ArgList node1 = new ArgList();
+ArgList result = new ArgList();
+Arg node1 = null;
+Arg node2 = null;
 Token n1;
 Token n2;
 }
 {
-    hangarg() ( "," hangarg() )*
+    node1=hangarg() {result.add(node1);} ( "," node2=hangarg() {result.add(node2);} )*
     {
-        return node1;
+        return result;
     }
 }
 
-void hangarg() : {
+Arg hangarg() : {
+Arg result = new Arg();
+Expression node1 = null;
 Token n1;
 }
 {
-    "@" expratom()
+    "@" node1=expratom()
+    {
+        result.setExpression(new IndirectExpression(node1));
+        return result;
+    }
     | n1=<NUMBER>
+    {
+        result.setExpression(new NumericConstant(n1.toString()));
+        return result;
+    }
 }
     
 IfCommand ifcommand() : {
-ArgList node1 = new ArgList();
+ArgList arglist = new ArgList();
+Arg node1 = null;
+Arg node2 = null;
 }
 {
 	LOOKAHEAD( 3 )
-	<IF> " " ifarg() ( "," ifarg() )*
+	<IF> " " node1=ifarg() {arglist.add(node1);} ( "," node2=ifarg() {arglist.add(node2);} )*
 	{
-// TODO: add the ifarg() results to the ArgList
 		IfCommand node = new IfCommand();
-		node.setArgList(node1);
+		node.setArgList(arglist);
 		return node;
 	}
 	| <IF> (" ")?
@@ -798,16 +829,20 @@ ArgList node1 = new ArgList();
 }
 
 
-void ifarg() : {
+Arg ifarg() : {
+Arg result = new Arg();
+Expression node1 = null;
 }
 {
-	expr()
+	node1=expr()
 	{
-		System.out.println("ifarg(1)");
+		result.setExpression(node1);
+		return result;
 	}
-	| "@" expratom()
-	{	
-		System.out.println("ifarg(2)");
+	| "@" node1=expratom()
+	{
+	    result.setExpression(new IndirectExpression(node1));
+		return result;
 	}
 }
 
@@ -1591,7 +1626,6 @@ ArgList node1 = null;
 	   result.setArgList(node1);
 	   
 	   if (n2 != null && node1 == null) {
-	       // don't return a null ArgList object for "()"
 	       result.setArgList(new ArgList());
 	   }
 	   return result;
