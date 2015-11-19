@@ -546,75 +546,119 @@ Arg doarg() : {
 Arg result = new Arg();
 Expression node2 = null;
 PostCondition node1 = null;
+ArgList node3 = null;
 }
 {
     // TODO - entryref and labelref are ambiguous on token <NAME>
 	"@" node2=expratom()
 	{
+	   result.setExpression(node2);
 	   return result;
 	}
-    | node2=externref() ( actuallist() )? ( node1=postcond() )? 
+    | node2=externref() ( node3=actuallist() )? ( node1=postcond() )? 
     {
         if (node1 != null) {
             ConditionalArg condArg = new ConditionalArg();
             condArg.setCondition(node1.getExpr());
             condArg.setExpression(node2);
+            ((ExternRef)node2).setArgList(node3);
             return condArg;
         }
+        ((ExternRef)node2).setArgList(node3);
         result.setExpression(node2);
         return result;
     }
-	| node2=entryref() ( node1=postcond() )?
+	| node2=entryref() ( node3=actuallist() )? ( node1=postcond() )?
     {
         if (node1 != null) {
             ConditionalArg condArg = new ConditionalArg();
             condArg.setCondition(node1.getExpr());
+            
             condArg.setExpression(node2);
+            if (node3 != null) {
+                LabelRef lref = LabelRef.from((EntryRef)node2);
+                lref.setArgList(node3);
+                // it's a label ref, not an entry ref.
+                condArg.setExpression(lref);
+            }
+            
             return condArg;
         }
         result.setExpression(node2);
-        return result;
-    }
-	| node2=labelref() actuallist() ( node1=postcond() )? 
-    {
-        if (node1 != null) {
-            ConditionalArg condArg = new ConditionalArg();
-            condArg.setCondition(node1.getExpr());
-            condArg.setExpression(node2);
-            return condArg;
+        
+        if (node3 != null) {
+            LabelRef lref = LabelRef.from((EntryRef)node2);
+            lref.setArgList(node3);
+            // it's a label ref, not an entry ref.
+            result.setExpression(lref);
         }
-        result.setExpression(node2);
+        
         return result;
     }
 }
 
 Expression entryref() : {
 EntryRef result = new EntryRef();
+Expression indexpr = null;
+Expression node3 = null;
 Token n1 = null;
+Token n2 = null;
+Token n3 = null;
+Token n4 = null;
 }
 {
 	// TODO
-	"^" ( ( "|" <NAME> "|" )? n1=<NAME> | "@" expratom() )
+	"^" ( ( "|" node3=expr() "|" )? n4=<NAME> | "@" indexpr=expratom() )
 	{
-	   if (n1 != null) {
-           result.setName(n1.toString());
-       }
-	   return result;
+        if (n3 != null) {
+           result.setEnvironment(node3);
+        }
+        if (n4 != null) {
+           result.setRoutine(n4.toString());
+        }
+        if (indexpr != null) {
+            result.setIndirectExpression(new IndirectExpression(indexpr));
+        }        
+	    return result;
 	}
 	// TODO doarg() and entryref() are ambiguous on "@foo"
-	| n1=<NAME> ( "+" <NUMBER> )?  ( "^" ( ( "|" <NAME> "|" )? <NAME> | "@" expratom() ) )?
+	| n1=<NAME> ( "+" n2=<NUMBER> )?  ( "^" ( ( "|" node3=expr() "|" )? n4=<NAME> | "@" indexpr=expratom() ) )?
 	{
 	    result.setName(n1.toString());
+	    if (n2 != null) {
+	       result.setOffset(n2.toString());
+	    }
+        if (n3 != null) {
+           result.setEnvironment(node3);
+        }
+        if (n4 != null) {
+           result.setRoutine(n4.toString());
+        }
+        if (indexpr != null) {
+            result.setIndirectExpression(new IndirectExpression(indexpr));
+        }        
 	    return result;
 	}
 }
 
 Expression externref() : {
 ExternRef result = new ExternRef();
+Token n1 = null;
+Token n2 = null;
+Token n3 = null;
+
 }
 {
-    "&" ( <NAME> "." )? <NAME> ( "^" <NAME> )?
+    "&" ( n1=<NAME> "." )? n2=<NAME> ( "^" n3=<NAME> )?
     {
+        if (n1 != null) {
+            result.setPackageName(n1.toString());
+        }
+        if (n3 != null) {
+            result.setRoutine(n3.toString());
+            result.setLabel(n2.toString());
+        }
+        result.setLabel(n2.toString());
         return result;
     }
 }
@@ -699,13 +743,13 @@ ArgList node2 = null;
 	// deal with <HANG> also
 	n1=<HALT> ( node1=postcond() )? " " ( node2=hangarglist() )?
 	{
-		if ("HANG".equals(n1.toString())) {  System.err.println("HANG!");
+		if ("HANG".equals(n1.toString())) {
 			result = new HangCommand();
 		}
-		else if (node2 != null) { System.err.println("node2 != null");
+		else if (node2 != null) {
             result = new HangCommand();
 		}
-		else { System.err.println("HALT node2 == null");
+		else {
 			result = new HaltCommand(node1);
 		}
         result.setPostCondition(node1);
@@ -812,37 +856,78 @@ Arg result = new Arg();
 
 Expression labelref() : {
 LabelRef result = new LabelRef();
+Token n1 = null;
+Token n2 = null;
+Expression node1 = null;
 }
 {
-	<NAME> (( "^" ( "|" environment() "|" )? ) | " ") <NAME>
+	n1=<NAME> (( "^" ( "|" node1=environment() "|" )? ) | " ") n2=<NAME>
 	{
+	   if (n1 != null) {
+	       result.setName(n1.toString());
+	   }
+       if (n2 != null) {
+           result.setRoutine(n2.toString());
+       }
+       result.setEnvironment(node1);
 	   return result;
 	}
-	| "^" ( "|" environment() "|" )?  <NAME>
+	| "^" ( "|" node1=environment() "|" )?  n2=<NAME>
     {
+       if (n2 != null) {
+           result.setRoutine(n2.toString());
+       }
+       result.setEnvironment(node1);
        return result;
     }
 }
 
-void environment() : {}
+Expression environment() : {
+Expression result = null;
+}
 {
-	expr()
+	result=expr()
+	{
+	   return result;
+	}
 }
 
-void actuallist() : {}
+ArgList actuallist() : {
+ArgList result = new ArgList();
+Arg node1 = null;
+Arg node2 = null;
+}
 {
-	"(" ( actualorexprlist() )? ")"
+	"(" ( node1=actualorexpr() {result.add(node1);} ( "," node2=actualorexpr() {result.add(node2);} )* )? ")"
+	{
+	   return result;
+	}
 }
 
-void actualorexprlist() : {}
-{
-    actualorexpr() ( "," actualorexpr() )*
+Arg actualorexpr() : {
+Arg result = new Arg();
+Expression node2 = null;
+Expression node1 = null;
+Token n1 = null;
 }
-
-void actualorexpr() : {}
 {
-    "." <NAME>
-    | expr()
+    "." ( n1=<NAME> | "@" node1=expratom() )
+    {
+        node2 = new ActualNameExpression();
+        if (n1 != null) {
+            ((ActualNameExpression)node2).setName(n1.toString());
+        }
+        else if (node1 != null) {
+            ((ActualNameExpression)node2).setIndirectExpression(new IndirectExpression(node1));
+        }
+        result.setExpression(node2);
+        return result; 
+    }
+    | node2=expr()
+    {
+        result.setExpression(node2);
+        return result;
+    }
 }
 
 void jobparams() : {}
