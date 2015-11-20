@@ -872,20 +872,29 @@ Arg node2 = null;
 }
 
 Arg jobarg() : {
-Arg result = new Arg();
+Arg result = new JobArg();
+Expression node1 = null;
+ArgList node2 = null;
+JobParam node3 = null;
 }
 {
-	"@" expratom()
+	"@" node1=expratom()
 	{
+	   result.setExpression(new IndirectExpression(node1));
 	   return result;
 	}
-    | entryref() ( ":" jobparams() )?
+    | node1=entryref() ( ":" node3=jobparams() )?
     {
-       return result;
+        ((JobArg)result).setJobParams(node3);
+        result.setExpression(node1);
+        return result;
     }
-	| labelref() actuallist() ( ":" jobparams() )?
+	| node1=labelref() node2=actuallist() ( ":" node3=jobparams() )?
     {
-       return result;
+        ((JobArg)result).setJobParams(node3);
+        ((LabelRef)node1).setArgList(node2);
+        result.setExpression(node1);
+        return result;
     }
 }
 
@@ -965,15 +974,46 @@ Token n1 = null;
     }
 }
 
-void jobparams() : {}
+JobParam jobparams() : {
+JobParam result = new JobParam();
+Expression node1 = null;
+Expression node2 = null;
+ArgList arglist = null;
+}
 {
-	( processparams() " " )? expr()
+    arglist=processparams() ( " " node2=expr() )?
+	{
+	    result.setProcessParams(arglist);
+	    result.setTimeout(node2);
+	    return result;
+	}
+    // spec is ambiguous around expr() whether it is a process param or a timeout
+    // so we're going to shoe-horn it into being a timeout
+	| node1=expr() ( " " node2=expr() )?
+	{
+	   if (node2 != null) {
+           result.setTimeout(node2);
+           arglist = new ArgList();
+           result.setProcessParams(arglist);
+           arglist.add(new Arg(node1));
+	   }
+	   else {
+	       result.setTimeout(node1);
+	   }
+	   return result;
+	}
 }
 
-void processparams() : {}
+ArgList processparams() : {
+ArgList result = new ArgList();
+Expression node1 = null;
+Expression node2 = null;
+}
 {
-	"(" ( expr() ":" )* expr() ")"
-	| expr()
+    "(" node1=expr() {result.add(new Arg(node1));} ( ":" node2=expr() {result.add(new Arg(node2));} )* ")"
+    {
+        return result;
+    }
 }
 
 KillCommand killcommand() : {
@@ -984,50 +1024,61 @@ ArgList node2 = null;
 	LOOKAHEAD( 3 )
 	<KILL> ( node1=postcond() )? " " node2=killarglist() 
 	{
-// TODO: implement
 		KillCommand node = new KillCommand(node1);
 		node.setArgList(node2);
 		return node;
 	}
 	| <KILL> ( node1=postcond() )? (" ")*
 	{
-// TODO: implement
-		KillCommand node3 = new KillCommand(node1);
-		return node3;
+		return new KillCommand(node1);
 	}
 }
 
 ArgList killarglist() : {
 ArgList result = new ArgList();
+Arg node1 = null;
+Arg node2 = null;
 }
 {
-	killarg() {result.add(new Arg());} ( "," killarg() {result.add(new Arg());} )*
+	node1=killarg() {result.add(node1);} ( "," node2=killarg() {result.add(node2);} )*
 	{
 		return result;
 	}
 }
 
-void killarg() : {}
+Arg killarg() : {
+Arg result = new Arg();
+Expression node1 = null;
+ArgList node3 = null;
+}
 {
-	 "@" expratom()
+	 "@" node1=expratom()
 	{
-		System.out.println("killarg(1)");
+		result.setExpression(new IndirectExpression(node1));
+		return result;
 	}
-	| lnamelist()
+	| node3=lnamelist()
 	{
-		System.out.println("killarg(2)");
+	    result = new ExclusiveArg();
+	    result.setExpression(node3);
+	    return result;
 	}
-	| glvn()
+	| node1=glvn()
 	{
-		System.out.println("killarg(3)");
+		result.setExpression(node1);
+		return result;
 	}
 }
 
-void lnamelist() : {}
+ArgList lnamelist() : {
+ArgList result = new ArgList();
+Arg node1 = null;
+Arg node2 = null;
+}
 {
-	"(" ( lname() ( "," lname() )* )? ")"
+	"(" ( node1=lname() {result.add(node1);} ( "," node2=lname() {result.add(node1);} )* )? ")"
 	{
-		System.out.println("lnamelist()");
+		return result;
 	}
 }
 
@@ -1044,7 +1095,7 @@ Token n1;
 	}
 	| n1=<NAME>
 	{
-	    result.setExpression(new StringConstant(n1.toString()));
+	    result.setExpression(new LocalVariableExpression(n1.toString(), null));
 	    return result;
 	}
 }
@@ -1075,7 +1126,7 @@ ArgList result = null;
         return result;
     }
     |
-    result = lockarglist()
+    result=lockarglist()
     {
         return result;
     }
