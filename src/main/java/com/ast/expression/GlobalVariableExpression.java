@@ -4,7 +4,7 @@ import com.ast.ArgList;
 
 public class GlobalVariableExpression extends Expression {
 	private String name;
-	private String environmentName;
+	private Expression environment;
 	private ArgList argList;
 	
 	public GlobalVariableExpression() {}
@@ -35,12 +35,12 @@ public class GlobalVariableExpression extends Expression {
 		this.argList = argList;
 	}
 
-	public String getEnvironmentName() {
-		return environmentName;
+	public Expression getEnvironment() {
+		return environment;
 	}
 
-	public void setEnvironmentName(String environmentName) {
-		this.environmentName = environmentName;
+	public void setEnvironment(Expression environment) {
+		this.environment = environment;
 	}
 	
 }

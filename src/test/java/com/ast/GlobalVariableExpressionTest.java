@@ -196,7 +196,10 @@ public class GlobalVariableExpressionTest extends BaseTest {
 		NumericConstant nconst = (NumericConstant)arg0.getExpression();
 		assertEquals("0", nconst.getValue());
 		
-		assertEquals("environment", gvn.getEnvironmentName());
+		assertNotNull(gvn.getEnvironment());
+		assertTrue(gvn.getEnvironment() instanceof LocalVariableExpression);
+		LocalVariableExpression lve2 = (LocalVariableExpression)gvn.getEnvironment();
+		assertEquals("environment", lve2.getName());
 	}
 
 	@Test
@@ -215,7 +218,11 @@ public class GlobalVariableExpressionTest extends BaseTest {
 		GlobalVariableExpression gvn = (GlobalVariableExpression)cc.getPostCondition().getExpr();
 		assertEquals("bar", gvn.getName());
 		assertNull(gvn.getArgList());
-		assertEquals("environment", gvn.getEnvironmentName());
+
+		assertNotNull(gvn.getEnvironment());
+		assertTrue(gvn.getEnvironment() instanceof LocalVariableExpression);
+		LocalVariableExpression lve2 = (LocalVariableExpression)gvn.getEnvironment();
+		assertEquals("environment", lve2.getName());
 	}
 
 	@Test
@@ -267,4 +274,31 @@ public class GlobalVariableExpressionTest extends BaseTest {
 		assertEquals("0", nconst.getValue());
 	}
 
+	@Test
+	public void testThirtyTwo() throws Exception {
+
+		String src = "TEST ;\r\n Q:(@foo@(1)) foo \r\n";  // a weird indirection
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, QuitCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof QuitCommand);
+		QuitCommand cc = (QuitCommand)cmd;
+		assertNotNull(cc.getPostCondition());
+		assertNotNull(cc.getPostCondition().getExpr());
+		assertTrue(cc.getPostCondition().getExpr() instanceof IndirectExpression);
+		IndirectExpression gvn = (IndirectExpression)cc.getPostCondition().getExpr();
+		assertNotNull(gvn.getValue());
+		assertTrue(gvn.getValue() instanceof LocalVariableExpression);
+		LocalVariableExpression lve = (LocalVariableExpression)gvn.getValue();
+		assertEquals("foo", lve.getName());
+		assertNotNull(gvn.getIndirectArgList());
+		assertNotNull(gvn.getIndirectArgList().getArgList());
+		assertEquals(1, gvn.getIndirectArgList().getArgList().size());
+		Arg arg0 = gvn.getIndirectArgList().getArgList().get(0);
+		assertNotNull(arg0.getExpression());
+		assertTrue(arg0.getExpression() instanceof NumericConstant);
+		NumericConstant nconst = (NumericConstant)arg0.getExpression();
+		assertEquals("1", nconst.getValue());
+	}
 }

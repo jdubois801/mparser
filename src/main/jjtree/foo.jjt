@@ -1052,15 +1052,20 @@ Expression node1 = null;
 ArgList node3 = null;
 }
 {
-	 "@" node1=expratom()
+	 "@" node1=expratom() ( "@" "(" node3=exprlist() ")" )?
 	{
-		result.setExpression(new IndirectExpression(node1));
-		return result;
+        // optional second "@" is a glvn()
+        IndirectExpression ie = new IndirectExpression(node1);
+        result.setExpression(ie);
+        if (node3 != null) {
+            ((IndirectExpression)ie).setIndirectArgList(node3);       
+        }
+        return result;
 	}
 	| node3=lnamelist()
 	{
 	    result = new ExclusiveArg();
-	    result.setExpression(node3);
+	    ((ExclusiveArg)result).setArgList(node3);
 	    return result;
 	}
 	| node1=glvn()
@@ -1076,7 +1081,7 @@ Arg node1 = null;
 Arg node2 = null;
 }
 {
-	"(" ( node1=lname() {result.add(node1);} ( "," node2=lname() {result.add(node1);} )* )? ")"
+	"(" ( node1=lname() {result.add(node1);} ( "," node2=lname() {result.add(node2);} )* )? ")"
 	{
 		return result;
 	}
@@ -1105,69 +1110,103 @@ PostCondition node1 = null;
 ArgList node2 = null;
 }
 {
-	<LOCK> ( node1=postcond() )? ( " " ( node2=lockargparens() )? )?
+	<LOCK> ( node1=postcond() )? ( " " ( node2=lockarglist() )? )?
 	{
 		LockCommand node = new LockCommand(node1);
+		if (node2 == null) {
+		    node2 = new ArgList();
+		}
 		node.setArgList(node2);
 		return node;
 	}
 }
 
-ArgList lockargparens() : {
-ArgList result = null;
-}
-{
-    "(" ( result=lockarglist() )? ")"
-    {
-        if (result == null) {
-            result = new ArgList();
-        }
-        
-        return result;
-    }
-    |
-    result=lockarglist()
-    {
-        return result;
-    }
-}
-
 ArgList lockarglist() : {
 ArgList result = new ArgList();
+Arg node1 = null;
+Arg node2 = null;
+Expression node3 = null;
 }
 {
-	lockarg() {result.add(new Arg());} ( "," lockarg() {result.add(new Arg());} )*
+	node1=lockarg() {result.add(node1);} ( "," node2=lockarg() {result.add(node2);} )*
 	{
 		return result;
 	}
 	// TODO - the grammar is ambiguous here. there is also the possibility of a @expratom interpreted as a lock arg list
 	// but that is ambiguous with a @expratom interpreted as a nref.
-	|  "@" expratom()
+	|  "@" node3=expratom()
 	{
-	   result.setLiveArg("expratom");  // TODO - get the correct value here.
+	   node1 = new LockArg();
+	   node1.setExpression(new IndirectExpression(node3));
+	   result.add(node1);
 	   return result;
 	}
 }
 
-void lockarg() : {
-Token n1;
+Arg lockarg() : {
+LockArg result = new LockArg();
+Token n1 = null;
+Expression node2 = null;
+ArgList node3 = null;
+Expression node1 = null;
+}
+{
+	( n1="+" | n1="-" )? ( ( "(" ( node3=nreflist() )? ")" ) | node1=nref() ) ( " " node2=expr() )?  // not sure about this space char
+	{
+	   if (n1 != null) {
+	       result.setAppend(n1.toString());
+	   }
+	   if (node1 != null) {
+	       result.setExpression(node1);
+	   }
+	   else if (node3 != null) {
+	       result.setArgList(node3);
+	   }
+	   if (node2 != null) {
+	       result.setTimeout(node2);
+	   }
+	   return result;
+	}
+}
+
+ArgList nreflist() : {
+ArgList result = new ArgList();
+Expression node1 = null;
 Expression node2 = null;
 }
 {
-	( n1="+" | n1="-" )? ( ( "(" nreflist() ")" ) | nref() ) ( " " node2=expr() )?
+	node1=nref() {result.add(new Arg(node1));} ( "," node2=nref() {result.add(new Arg(node2));} )*
+	{
+	   return result;
+	}
 }
 
-void nreflist() : {}
-{
-	nref() ( "," nref() )*
+Expression nref() : {
+Expression result = null;
+Token n1;
+Token n2;
+Token n3 = null;
+Expression node1 = null;
+ArgList node2 = null;	
 }
-
-void nref() : {
-	Token n1;
-	Token n2;
-}
 {
-	( "^" )? ( "|" n1=<NAME> "|" )? n2=<NAME> ( "(" exprlist() ")" )?
+	( n3="^" )? ( "|" node1=expr() "|" )? n2=<NAME> ( "(" node2=exprlist() ")" )?
+	{
+	   if (n3 != null) {
+	       result = new GlobalVariableExpression(n2.toString(), new ArgList());
+	       ((GlobalVariableExpression)result).setEnvironment(node1);
+	       if (node2 != null) {
+	           ((GlobalVariableExpression)result).setArgList(node2);
+	       }
+	   }
+	   else {
+	       result = new LocalVariableExpression(n2.toString(), new ArgList());
+           if (node2 != null) {
+               ((LocalVariableExpression)result).setArgList(node2);
+           }
+	   }
+	   return result;
+	}
 // | "@" expratom()  // suppressed for now because its ambiguous
 }
 
@@ -1595,11 +1634,17 @@ Expression node2 = null;
 
 Expression expratom() : {
 Expression result = null;
+ArgList node1 = null;
 }
 {
-    "@" result=expratom()
+    "@" result=expratom() ( "@" "(" node1=exprlist() ")" )?  
     {
-       return new IndirectExpression(result);
+        // optional second "@" is a glvn()
+        result = new IndirectExpression(result);
+        if (node1 != null) {
+            ((IndirectExpression)result).setIndirectArgList(node1);       
+        }
+        return result;
     }
 	| result=glvn()
 	{
@@ -1653,7 +1698,7 @@ Expression result = null;
     {
         return result;
     }
-	| result=gvn () 
+	| result=gvn() 
     {
         return result;
     }
@@ -1703,14 +1748,14 @@ GlobalVariableExpression result = null;
 Expression node1 = null;
 ArgList node2 = null;
 Token n1 = null;
-Token n2 = null;
+Expression node3 = null;
 }
 {
-	"^" ( "|" n2=<NAME> "|" )?  node1=lvn()
+	"^" ( "|" node3=expr() "|" )?  node1=lvn()
 	{
 	   result = new GlobalVariableExpression((LocalVariableExpression)node1);
-	   if (n2 != null) {
-	       result.setEnvironmentName(n2.toString());
+	   if (node3 != null) {
+	       result.setEnvironment(node3);
 	   }
 	   return result;
 	}
