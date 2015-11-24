@@ -3,12 +3,17 @@ package com.ast;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
 import com.ast.Routine;
 import com.ast.command.Command;
 import com.ast.command.OpenCommand;
+import com.ast.expression.BinaryExpression;
+import com.ast.expression.IndirectExpression;
+import com.ast.expression.LocalVariableExpression;
+import com.ast.expression.NumericConstant;
 
 public class OpenCommandTest extends BaseTest {
 
@@ -23,6 +28,19 @@ public class OpenCommandTest extends BaseTest {
 		assertTrue(cmd instanceof OpenCommand);
 		OpenCommand cc = (OpenCommand)cmd;
 		assertNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(1, cc.getArgList().getArgList().size());
+		Arg arg0 = cc.getArgList().getArgList().get(0);
+		assertTrue(arg0 instanceof OpenArg);
+		OpenArg oarg0 = (OpenArg)arg0;
+		assertNull(oarg0.getOpenArgs());
+		assertNotNull(oarg0.getExpression());
+		assertTrue(oarg0.getExpression() instanceof LocalVariableExpression);
+		LocalVariableExpression lve = (LocalVariableExpression)oarg0.getExpression();
+		assertEquals("foo", lve.getName());
+		assertNull(lve.getArgList());
 	}
 
 	@Test
@@ -36,6 +54,19 @@ public class OpenCommandTest extends BaseTest {
 		assertTrue(cmd instanceof OpenCommand);
 		OpenCommand cc = (OpenCommand)cmd;
 		assertNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(1, cc.getArgList().getArgList().size());
+		Arg arg0 = cc.getArgList().getArgList().get(0);
+		assertTrue(arg0 instanceof OpenArg);
+		OpenArg oarg0 = (OpenArg)arg0;
+		assertNull(oarg0.getOpenArgs());
+		assertNotNull(oarg0.getExpression());
+		assertTrue(oarg0.getExpression() instanceof LocalVariableExpression);
+		LocalVariableExpression lve = (LocalVariableExpression)oarg0.getExpression();
+		assertEquals("foo", lve.getName());
+		assertNull(lve.getArgList());
 	}
 
 	@Test
@@ -49,6 +80,19 @@ public class OpenCommandTest extends BaseTest {
 		assertTrue(cmd instanceof OpenCommand);
 		OpenCommand cc = (OpenCommand)cmd;
 		assertNotNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(1, cc.getArgList().getArgList().size());
+		Arg arg0 = cc.getArgList().getArgList().get(0);
+		assertTrue(arg0 instanceof OpenArg);
+		OpenArg oarg0 = (OpenArg)arg0;
+		assertNull(oarg0.getOpenArgs());
+		assertNotNull(oarg0.getExpression());
+		assertTrue(oarg0.getExpression() instanceof LocalVariableExpression);
+		LocalVariableExpression lve = (LocalVariableExpression)oarg0.getExpression();
+		assertEquals("foo", lve.getName());
+		assertNull(lve.getArgList());
 	}
 
 	@Test
@@ -62,6 +106,37 @@ public class OpenCommandTest extends BaseTest {
 		assertTrue(cmd instanceof OpenCommand);
 		OpenCommand cc = (OpenCommand)cmd;
 		assertNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(2, cc.getArgList().getArgList().size());
+		Arg arg0 = cc.getArgList().getArgList().get(0);
+		assertTrue(arg0 instanceof OpenArg);
+		OpenArg oarg0 = (OpenArg)arg0;
+		assertNull(oarg0.getOpenArgs());
+		assertNotNull(oarg0.getExpression());
+		assertTrue(oarg0.getExpression() instanceof LocalVariableExpression);
+		LocalVariableExpression lve = (LocalVariableExpression)oarg0.getExpression();
+		assertEquals("foo", lve.getName());
+		assertNull(lve.getArgList());
+		
+		Arg arg1 = cc.getArgList().getArgList().get(1);
+		assertTrue(arg1 instanceof OpenArg);
+		OpenArg oarg1 = (OpenArg)arg1;
+		assertNull(oarg1.getOpenArgs());
+		assertNotNull(oarg1.getExpression());
+		assertTrue(oarg1.getExpression() instanceof BinaryExpression);
+		BinaryExpression be = (BinaryExpression)oarg1.getExpression();
+		assertEquals("+", be.getOperator());
+		assertNotNull(be.getLeftExpression());
+		assertTrue(be.getLeftExpression() instanceof NumericConstant);
+		NumericConstant nconst = (NumericConstant)be.getLeftExpression();
+		assertEquals("1", nconst.getValue());
+		
+		assertNotNull(be.getRightExpression());
+		assertTrue(be.getRightExpression() instanceof NumericConstant);
+		nconst = (NumericConstant)be.getRightExpression();
+		assertEquals("2", nconst.getValue());
 	}
 	
 	@Test
@@ -75,6 +150,21 @@ public class OpenCommandTest extends BaseTest {
 		assertTrue(cmd instanceof OpenCommand);
 		OpenCommand cc = (OpenCommand)cmd;
 		assertNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(1, cc.getArgList().getArgList().size());
+		Arg arg0 = cc.getArgList().getArgList().get(0);
+		assertTrue(arg0 instanceof OpenArg);
+		OpenArg oarg0 = (OpenArg)arg0;
+		assertNull(oarg0.getOpenArgs());
+		assertNotNull(oarg0.getExpression());
+		assertTrue(oarg0.getExpression() instanceof LocalVariableExpression);
+		LocalVariableExpression lve = (LocalVariableExpression)oarg0.getExpression();
+		assertEquals("foo", lve.getName());
+		assertNull(lve.getArgList());
+		
+		// TODO- open params on arg0
 	}
 
 	@Test
@@ -88,6 +178,48 @@ public class OpenCommandTest extends BaseTest {
 		assertTrue(cmd instanceof OpenCommand);
 		OpenCommand cc = (OpenCommand)cmd;
 		assertNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(3, cc.getArgList().getArgList().size());
+		
+		Arg arg0 = cc.getArgList().getArgList().get(0);
+		assertTrue(arg0 instanceof OpenArg);
+		OpenArg oarg0 = (OpenArg)arg0;
+		assertNull(oarg0.getOpenArgs());
+		assertNotNull(oarg0.getExpression());
+		assertTrue(oarg0.getExpression() instanceof IndirectExpression);
+		IndirectExpression ie = (IndirectExpression)oarg0.getExpression();
+		assertNull(ie.getIndirectArgList());
+		assertNotNull(ie.getValue());
+		assertTrue(ie.getValue() instanceof LocalVariableExpression);
+		LocalVariableExpression lve = (LocalVariableExpression)ie.getValue();
+		assertEquals("one", lve.getName());
+		assertNull(lve.getArgList());
+		
+		Arg arg1 = cc.getArgList().getArgList().get(1);
+		assertTrue(arg1 instanceof OpenArg);
+		OpenArg oarg1 = (OpenArg)arg1;
+		assertNull(oarg1.getOpenArgs());
+		assertNotNull(oarg1.getExpression());
+		assertTrue(oarg1.getExpression() instanceof LocalVariableExpression);
+		LocalVariableExpression lve1 = (LocalVariableExpression)oarg1.getExpression();
+		assertEquals("foo", lve1.getName());
+		assertNull(lve1.getArgList());
+		
+		Arg arg2 = cc.getArgList().getArgList().get(2);
+		assertTrue(arg2 instanceof OpenArg);
+		OpenArg oarg2 = (OpenArg)arg2;
+		assertNull(oarg2.getOpenArgs());
+		assertNotNull(oarg2.getExpression());
+		assertTrue(oarg2.getExpression() instanceof IndirectExpression);
+		IndirectExpression ie2 = (IndirectExpression)oarg2.getExpression();
+		assertNull(ie2.getIndirectArgList());
+		assertNotNull(ie2.getValue());
+		assertTrue(ie2.getValue() instanceof LocalVariableExpression);
+		LocalVariableExpression lve2 = (LocalVariableExpression)ie2.getValue();
+		assertEquals("two", lve2.getName());
+		assertNull(lve2.getArgList());
 	}
 
 	@Test

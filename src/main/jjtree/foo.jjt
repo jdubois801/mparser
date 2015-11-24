@@ -1186,28 +1186,38 @@ Expression result = null;
 Token n1;
 Token n2;
 Token n3 = null;
+Token n4 = null;
 Expression node1 = null;
 ArgList node2 = null;	
 }
 {
-	( n3="^" )? ( "|" node1=expr() "|" )? n2=<NAME> ( "(" node2=exprlist() ")" )?
+	( n3="^" )? ( "|" node1=expr() "|" )? n2=<NAME> ( n4="(" ( node2=exprlist() )? ")" )?
 	{
-	   if (n3 != null) {
-	       result = new GlobalVariableExpression(n2.toString(), new ArgList());
+	   if (n3 != null || node1 != null) {
+	       result = new GlobalVariableExpression(n2.toString(), null);
 	       ((GlobalVariableExpression)result).setEnvironment(node1);
 	       if (node2 != null) {
 	           ((GlobalVariableExpression)result).setArgList(node2);
 	       }
+           else if (n4 != null) {
+               ((GlobalVariableExpression)result).setArgList(new ArgList());
+           }
 	   }
 	   else {
-	       result = new LocalVariableExpression(n2.toString(), new ArgList());
+	       result = new LocalVariableExpression(n2.toString(), null);
            if (node2 != null) {
                ((LocalVariableExpression)result).setArgList(node2);
+           }
+           else if (n4 != null) {
+               ((LocalVariableExpression)result).setArgList(new ArgList());
            }
 	   }
 	   return result;
 	}
-// | "@" expratom()  // suppressed for now because its ambiguous
+    | "@" node1=expratom()  
+    {
+        return new IndirectExpression(node1);
+    }
 }
 
 MergeCommand mergecommand() : {
@@ -1217,7 +1227,6 @@ ArgList node2 = null;
 {
 	<MERGE> ( node1=postcond() )? " " node2=mergearglist()
 	{
-// TODO: implement
 		MergeCommand node = new MergeCommand(node1);
 		node.setArgList(node2);
 		return node;
@@ -1226,18 +1235,33 @@ ArgList node2 = null;
 
 ArgList mergearglist() : {
 ArgList result = new ArgList();
+Arg node1 = null;
+Arg node2 = null;
 }
 {
-	mergearg() {result.add(new Arg());} ( "," mergearg() {result.add(new Arg());} )*
+	node1=mergearg() {result.add(node1);} ( "," node2=mergearg() {result.add(node2);} )*
 	{
 		return result;
 	}
 }
 
-void mergearg() : {}
+Arg mergearg() : {
+MergeArg result = new MergeArg();
+Expression node1 = null;
+Expression node2 = null;
+}
 {
-	"@" expratom()
-	| glvn() "=" glvn() 
+	"@" node1=expratom()
+	{
+	   result.setExpression(new IndirectExpression(node1));
+	   return result;
+	}
+	| node1=glvn() "=" node2=glvn()
+	{
+	   result.setDestExpression(node1);
+	   result.setExpression(node2);
+	   return result;
+	} 
 }
 
 NewCommand newcommand() : {
@@ -1247,7 +1271,6 @@ ArgList node2 = null;
 {
 	<NEW> ( node1=postcond() )? ( (" " node2=newarglist()) | ( " " )? )
 	{
-// TODO: implement
 		NewCommand node = new NewCommand(node1);
 		node.setArgList(node2);
 		return node;
@@ -1256,20 +1279,60 @@ ArgList node2 = null;
 
 ArgList newarglist() : {
 ArgList result = new ArgList();
+Arg node1 = null;
+Arg node2 = null;
 }
 {
-	newarg() {result.add(new Arg());} ( "," newarg() {result.add(new Arg());} )*
+	node1=newarg() {result.add(node1);} ( "," node2=newarg() {result.add(node2);} )*
 	{
 		return result;
 	}
 }
 
-void newarg() : {}
+Arg newarg() : {
+Arg result = new Arg();
+Expression node1 = null;
+Arg node2 = null;
+ArgList node3 = null;
+Token n1 = null;
+}
 {
-	"@" expratom()
-	| lnamelist() 
-	| lname()
-	// TODO: newsvn
+	"@" node1=expratom()
+	{
+	    result.setExpression(new IndirectExpression(node1));
+	    return result;
+    }
+    | node1=newsvn()
+    {
+        result.setExpression(node1);
+        return result;
+    }
+	| node3=lnamelist() 
+    {
+        result = new ExclusiveArg();
+        ((ExclusiveArg)result).setArgList(node3);
+        return result;
+    }
+	| node2=lname()
+    {
+        return node2;
+    }
+}
+
+Expression newsvn() : {
+StructuredSystemVariableExpression result = new StructuredSystemVariableExpression();
+}
+{
+    <V_ESTACK>
+    {
+       result.setName("$ESTACK");
+       return result;
+    }
+    | <V_ETRAP>
+    {
+       result.setName("$ETRAP");
+       return result;
+    }
 }
 
 OpenCommand opencommand() : {
@@ -1279,7 +1342,6 @@ ArgList node2 = null;
 {
 	<OPEN> ( node1=postcond() )? " " node2=openarglist()
 	{
-// TODO: implement
 		OpenCommand node = new OpenCommand(node1);
 		node.setArgList(node2);
 		return node;
@@ -1288,18 +1350,32 @@ ArgList node2 = null;
 
 ArgList openarglist() : {
 ArgList result = new ArgList();
+Arg node1 = null;
+Arg node2 = null;
 }
 {
-	openarg() {result.add(new Arg());} ( "," openarg() {result.add(new Arg());} )*
+	node1=openarg() {result.add(node1);} ( "," node2=openarg() {result.add(node2);} )*
 	{
 		return result;
 	}
 }
 	
-void openarg() : {}
+Arg openarg() : {
+OpenArg result = new OpenArg();
+Expression node1 = null;
+}
 {
-	"@" expratom()
-	| expr() ( ":" openparameters() )?
+	"@" node1=expratom()
+	{
+	   result.setExpression(new IndirectExpression(node1));
+	   return result;
+	}
+	| node1=expr() ( ":" openparameters() )?
+    {
+    // TODO - save the openparams
+        result.setExpression(node1);
+        return result;
+    }
 }
 	
 void openparameters() : {}
@@ -1452,10 +1528,20 @@ void leftexpr() : {}
 	| setpiece()
 }
 
-void setev() : {}
+Expression setev() : {
+StructuredSystemVariableExpression result = new StructuredSystemVariableExpression();
+}
 {
 	<V_ECODE>
+	{
+	   result.setName("$ECODE");
+	   return result;
+	}
 	| <V_ETRAP>
+	{
+       result.setName("$ETRAP");
+       return result;
+	}
 }
 
 void setextract() : {}
