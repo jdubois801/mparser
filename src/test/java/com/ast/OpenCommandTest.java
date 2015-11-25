@@ -11,6 +11,7 @@ import com.ast.Routine;
 import com.ast.command.Command;
 import com.ast.command.OpenCommand;
 import com.ast.expression.BinaryExpression;
+import com.ast.expression.Expression;
 import com.ast.expression.IndirectExpression;
 import com.ast.expression.LocalVariableExpression;
 import com.ast.expression.NumericConstant;
@@ -142,7 +143,7 @@ public class OpenCommandTest extends BaseTest {
 	@Test
 	public void testFour() throws Exception {
 
-		String src = "TEST ;\r\n O foo:1+2 \r\n";
+		String src = "TEST ;\r\n O foo:1 \r\n";
 		Routine routine = parseAndValidate(src); 
 		Command cmd = findFirstCommand(routine, OpenCommand.class);
 
@@ -164,7 +165,14 @@ public class OpenCommandTest extends BaseTest {
 		assertEquals("foo", lve.getName());
 		assertNull(lve.getArgList());
 		
-		// TODO- open params on arg0
+		assertNotNull(oarg0.getOpenParams());
+		assertNull(oarg0.getOpenParams().getMnemonicSpaceList());
+		assertNotNull(oarg0.getOpenParams().getTimeout());
+		assertNull(oarg0.getOpenParams().getDeviceParamList());
+		assertTrue(oarg0.getOpenParams().getTimeout() instanceof NumericConstant);
+		
+		NumericConstant nconst = (NumericConstant)oarg0.getOpenParams().getTimeout();
+		assertEquals("1", nconst.getValue());
 	}
 
 	@Test
@@ -225,7 +233,7 @@ public class OpenCommandTest extends BaseTest {
 	@Test
 	public void testSix() throws Exception {
 
-		String src = "TEST ;\r\n O foo:1(2) \r\n";
+		String src = "TEST ;\r\n O foo:1 \r\n";
 		Routine routine = parseAndValidate(src); 
 		Command cmd = findFirstCommand(routine, OpenCommand.class);
 
@@ -233,8 +241,86 @@ public class OpenCommandTest extends BaseTest {
 		assertTrue(cmd instanceof OpenCommand);
 		OpenCommand cc = (OpenCommand)cmd;
 		assertNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(1, cc.getArgList().getArgList().size());
+		Arg arg0 = cc.getArgList().getArgList().get(0);
+		assertTrue(arg0 instanceof OpenArg);
+		OpenArg oarg0 = (OpenArg)arg0;
+		assertNull(oarg0.getOpenArgs());
+		assertNotNull(oarg0.getExpression());
+		assertTrue(oarg0.getExpression() instanceof LocalVariableExpression);
+		LocalVariableExpression lve = (LocalVariableExpression)oarg0.getExpression();
+		assertEquals("foo", lve.getName());
+		assertNull(lve.getArgList());
+		
+		assertNotNull(oarg0.getOpenParams());
+		assertNull(oarg0.getOpenParams().getMnemonicSpaceList());
+		assertNotNull(oarg0.getOpenParams().getTimeout());
+		assertNull(oarg0.getOpenParams().getDeviceParamList());
+		assertTrue(oarg0.getOpenParams().getTimeout() instanceof NumericConstant);
+				
+		NumericConstant nconst = (NumericConstant)oarg0.getOpenParams().getTimeout();
+		assertEquals("1", nconst.getValue());
+	}
+	
+	@Test
+	public void testSeven() throws Exception {
+
+		String src = "TEST ;\r\n O foo:1:2 \r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, OpenCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof OpenCommand);
+		OpenCommand cc = (OpenCommand)cmd;
+		assertNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(1, cc.getArgList().getArgList().size());
+		Arg arg0 = cc.getArgList().getArgList().get(0);
+		assertTrue(arg0 instanceof OpenArg);
+		OpenArg oarg0 = (OpenArg)arg0;
+		assertNull(oarg0.getOpenArgs());
+		assertNotNull(oarg0.getExpression());
+		assertTrue(oarg0.getExpression() instanceof LocalVariableExpression);
+		LocalVariableExpression lve = (LocalVariableExpression)oarg0.getExpression();
+		assertEquals("foo", lve.getName());
+		assertNull(lve.getArgList());
+		
+		assertNotNull(oarg0.getOpenParams());
+		assertNotNull(oarg0.getOpenParams().getMnemonicSpaceList());
+		assertNotNull(oarg0.getOpenParams().getTimeout());
+		assertNull(oarg0.getOpenParams().getDeviceParamList());
+
+		assertTrue(oarg0.getOpenParams().getTimeout() instanceof NumericConstant);
+		
+		NumericConstant nconst = (NumericConstant)oarg0.getOpenParams().getTimeout();
+		assertEquals("1", nconst.getValue());
+		
+		assertNotNull(oarg0.getOpenParams().getMnemonicSpaceList().getSpaceList());
+		assertEquals(1, oarg0.getOpenParams().getMnemonicSpaceList().getSpaceList().size());
+		Expression ex = oarg0.getOpenParams().getMnemonicSpaceList().getSpaceList().get(0);
+		assertTrue(ex instanceof NumericConstant);
+		NumericConstant nconst0 = (NumericConstant)ex;
+		assertEquals("2", nconst0.getValue());
 	}
 
+	//	@Test
+//	public void testSix() throws Exception {
+//
+//		String src = "TEST ;\r\n O foo:1(2) \r\n";
+//		Routine routine = parseAndValidate(src); 
+//		Command cmd = findFirstCommand(routine, OpenCommand.class);
+//
+//		assertNotNull(cmd);
+//		assertTrue(cmd instanceof OpenCommand);
+//		OpenCommand cc = (OpenCommand)cmd;
+//		assertNull(cc.getPostCondition());
+//	}
+//
 //	@Test
 //	public void testSeven() throws Exception {
 //

@@ -1363,6 +1363,7 @@ Arg node2 = null;
 Arg openarg() : {
 OpenArg result = new OpenArg();
 Expression node1 = null;
+OpenParam node2 = null;
 }
 {
 	"@" node1=expratom()
@@ -1370,31 +1371,71 @@ Expression node1 = null;
 	   result.setExpression(new IndirectExpression(node1));
 	   return result;
 	}
-	| node1=expr() ( ":" openparameters() )?
+	| node1=expr() ( ":" node2=openparameters() )?
     {
-    // TODO - save the openparams
         result.setExpression(node1);
+        result.setOpenParams(node2);
         return result;
     }
 }
 	
-void openparameters() : {}
+OpenParam openparameters() : {
+OpenParam result = new OpenParam();
+DeviceParamList node1 = null;
+Token n2 = null;
+MnemonicSpaceList node3 = null;
+}
 {
-    // TODO - the grammar is ambiguous around deviceparams() = expr() and expr()
-	deviceparams() ( expr() ( ":" expr() )? )?
-	| ( deviceparams() )? "::" mnemonicspec()
-	| expr() ( ":" mnemonicspec() )?
+    "::" node3=mnemonicspec() 
+    {
+        result.setDeviceParamList(node1);
+        result.setMnemonicSpaceList(node3);    
+        return result;
+    }
+    | n2=<NUMBER> ( ":" node3=mnemonicspec() )?
+    {
+        result.setTimeout(new NumericConstant(n2.toString()));
+        result.setMnemonicSpaceList(node3);    
+        return result;
+    }
+    // TODO - the grammar is ambiguous around deviceparams : expr() and timeout : expr()
+	| node1=deviceparams() ( ( " " n2=<NUMBER> ( ":" node3=mnemonicspec() )? ) | ( "::" node3=mnemonicspec() ) )?  
+	// deviceparams, timeout, mnemonicspec
+	{
+        result.setDeviceParamList(node1);
+        if (n2 != null) {
+            result.setTimeout(new NumericConstant(n2.toString()));
+        }
+        result.setMnemonicSpaceList(node3);	   
+	    return result;
+	}
 }
 
-void mnemonicspec() : {}
+MnemonicSpaceList mnemonicspec() : {
+MnemonicSpaceList result = new MnemonicSpaceList();
+Expression node1 = null;
+Expression node2 = null;
+}
 {
-	"(" mnemonicspace() ( "," mnemonicspace() )* ")"
-	| mnemonicspace()
+	"(" node1=mnemonicspace() {result.add(node1);} ( "," node2=mnemonicspace() {result.add(node2);} )* ")"
+	{
+        return result;
+	}
+	| node1=mnemonicspace()
+    {
+        result.add(node1);
+        return result;
+    }
 }
 
-void mnemonicspace() : {}
+Expression mnemonicspace() : {
+Expression node1 = null;
+}
 {
-	expr()
+	node1=expr()  // should result in a dotted or hyphenated name
+	{
+        return node1;
+	}
 }
 
 QuitCommand quitcommand() : {
