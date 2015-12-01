@@ -4,7 +4,7 @@ import com.ast.expression.Expression;
 
 public class WriteArg extends Arg {
 	private Expression source;
-	private String format;
+	private Expression format;
 	private boolean oneChar = false;
 
 	public Expression getSource() {
@@ -15,11 +15,11 @@ public class WriteArg extends Arg {
 		this.source = source;
 	}
 
-	public String getFormat() {
+	public Expression getFormat() {
 		return format;
 	}
 
-	public void setFormat(String format) {
+	public void setFormat(Expression format) {
 		this.format = format;
 	}
 

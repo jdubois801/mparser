@@ -7,7 +7,7 @@ public class ReadArg extends Arg {
 	private Expression destination;
 	private boolean oneChar = false;
 	private String literal;
-	private String format;
+	private Expression format;
 	private Expression readCount;
 	private Expression timeout;
 
@@ -27,11 +27,11 @@ public class ReadArg extends Arg {
 		this.literal = literal;
 	}
 
-	public String getFormat() {
+	public Expression getFormat() {
 		return format;
 	}
 
-	public void setFormat(String format) {
+	public void setFormat(Expression format) {
 		this.format = format;
 	}
 

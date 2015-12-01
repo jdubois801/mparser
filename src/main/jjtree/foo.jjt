@@ -613,7 +613,6 @@ Token n3 = null;
 Token n4 = null;
 }
 {
-	// TODO
 	"^" ( ( "|" node3=expr() "|" )? n4=<NAME> | "@" indexpr=expratom() )
 	{
         if (n3 != null) {
@@ -686,10 +685,9 @@ Expression node2 = null;
 Expression node3 = null;
 }
 {
-	LOOKAHEAD( 3 )
+	LOOKAHEAD( 4 )
 	<FOR> " " dest=lvn() "=" node1=expr() ( ":" node2=expr() )? ( ":" node3=expr() )?
 	{
-// TODO: implement
 		ForCommand node = new ForCommand();
 		node.setDestination(dest);
 		node.setExpression1(node1);
@@ -1431,7 +1429,7 @@ Expression node2 = null;
 Expression mnemonicspace() : {
 Expression node1 = null;
 }
-{
+{ // TODO - is this really an expression or a name that is not a local variable reference?
 	node1=expr()  // should result in a dotted or hyphenated name
 	{
         return node1;
@@ -1445,7 +1443,6 @@ Expression node2 = null;
 {
 	<QUIT> ( node1=postcond() )? (" ")* ( node2=expr() )?
 	{
-// TODO: implement
 		QuitCommand node = new QuitCommand(node1);
 		node.setReturnExpression(node2);
 		return node;
@@ -1484,7 +1481,7 @@ Expression node1 = null;
 Expression node2 = null;
 Expression node3 = null;
 Token n2 = null;
-StringBuffer buf = new StringBuffer();
+String str = null;
 }
 {
 	"@" node1=expratom()
@@ -1518,30 +1515,47 @@ StringBuffer buf = new StringBuffer();
         }
         return result;
     }
-	| ( n2=format() {buf.append(n2.toString());} )+
+	| node1=format() 
     {
-        result.setFormat(buf.toString().replaceAll("\"", ""));
+        result.setFormat(node1);
         return result;
     }
 }
 
-Token format() : {
+Expression format() : {
+FormatExpression result = new FormatExpression();
 Token n1 = null;
+Token n2 = null;
+StringBuffer buf = new StringBuffer();
+ArgList node1 = null;
 } 
 {
-    // TODO- "/controlmnemonic" expression
-	n1="!"
+    LOOKAHEAD( 2 )
+    "?" n2=<NUMBER>
+    {
+        result.setFormat("?" + n2.toString());
+        return result;
+    }
+	| ( (n1="!" | n1="#" | n1="?") {buf.append(n1.toString());} )+ ( n2=<NUMBER> )?
 	{
-	   return n1;
+	    if (n2 != null) {
+	        char c = buf.charAt(buf.length()-1); 
+	        if (c == '!' || c == '#') {
+	            throw new ParseException("Illegal char encountered.");
+	        }
+            buf.append(n2.toString());
+        }
+        result.setFormat(buf.toString());
+        return result;
 	}
-	| n1="#"
-    {
-       return n1;
-    }
-	| n1="?"
-    {
-       return n1;
-    }
+	| "/" n1=name() ( n2="(" ( node1=exprlist() )? ")" )?
+	{
+        result.setFormat("/" + n1.toString());
+	    if (n2 != null) {
+	        result.setArgList(node1);
+	    }
+	    return result;
+	}
 }
 
 SetCommand setcommand() : {
@@ -1838,7 +1852,6 @@ WriteArg writearg() : {
 WriteArg result = new WriteArg();
 Expression node1 = null;
 Token n2 = null;
-StringBuffer buf = new StringBuffer();
 }
 {
 	"@" node1=expratom()
@@ -1852,9 +1865,9 @@ StringBuffer buf = new StringBuffer();
         result.setOneChar(true);
 	    return result;
 	}
-	| ( n2=format() {buf.append(n2.toString());} )+
-	{  // TODO- "#" doesn't seem to be a valid write format char
-	    result.setFormat(buf.toString().replaceAll("\"", ""));
+	| node1=format()
+	{
+	    result.setFormat(node1);
 	    return result;
 	}
 	| node1=expr()
@@ -2024,7 +2037,7 @@ ArgList node1 = null;
 {
     // TODO - the grammar is ambiguous around "@foo" interpreted as a lvn
     // and it's worse around "@label@(expressions)"
-  	n1=<NAME> ( n2="(" ( node1=exprlist() )? ")" )?
+  	n1=name() ( n2="(" ( node1=exprlist() )? ")" )?
 	{
 	   LocalVariableExpression result = new LocalVariableExpression(n1.toString(), null);
 	   result.setArgList(node1);
@@ -2036,17 +2049,24 @@ ArgList node1 = null;
 	}
 }
 
+Token name() : {
+Token n1 = null;
+}
+{
+    ( n1=<NAME> | n1=<BREAK> | n1=<CLOSE> | n1=<DO> | n1=<ELSE> | n1=<FOR> | n1=<GOTO> | n1=<HALT> | n1=<IF> | n1=<JOB> | n1=<KILL> | n1=<LOCK> | n1=<MERGE> | n1=<NEW> | n1=<OPEN> | n1=<QUIT> | n1=<READ> | n1=<SET> | n1=<USE> | n1=<VIEW> | n1=<WRITE> | n1=<XECUTE> )
+    {
+        return n1;
+    }
+}
+
 ArgList exprlist() : {
 ArgList result = new ArgList();
 Expression node1 = null;
 Expression node2 = null;
 }  
 {
-	node1=expr() ("," node2=expr() {Arg arg2=new Arg();arg2.setExpression(node2);result.add(arg2);} )*
+	node1=expr() {result.add(new Arg(node1));} ("," node2=expr() {Arg arg2=new Arg();arg2.setExpression(node2);result.add(arg2);} )*
 	{
-	   Arg arg = new Arg();
-	   arg.setExpression(node1);
-	   result.add(arg);  // TODO- might be adding in the wrong order (with node1 last instead of first)
 	   return result;
 	} 
 }
@@ -2342,8 +2362,9 @@ Expression expritem() : {
 Expression result = null;
 Expression node1 = null;
 Token n1 = null;
-}  // TODO
+}
 {
+// TODO - are all of these implemented?
 // strlit
 // numlit
 // exfunc
@@ -2379,98 +2400,38 @@ Token unaryop() : {
 Token n1 = null;
 }
 {
-	n1="\'" 
+	( n1="\'" | n1="+" | n1="-" )
     {
-    return n1;
+        return n1;
     }
-	| n1="+" 
-    {
-    return n1;
-    }
-	| n1="-"
-	{
-	return n1;
-	}
 }
 
 Token binaryop() : {
 Token n1 = null;
 }
 {
-	n1="_" 
+	( n1="_" | n1="+" | n1="-" | n1="*" | n1="/"| n1="#" | n1="\\" | n1="**" )
     {
        return n1;
     }
-	| n1="+" 
-    {
-       return n1;
-    }
-	| n1="-" 
-    {
-       return n1;
-    }
-	| n1="*" 
-    {
-       return n1;
-    }
-	| n1="/" 
-    {
-       return n1;
-    }
-	| n1="#" 
-    {
-       return n1;
-    }
-	| n1="\\" 
-    {
-       return n1;
-    }
-	| n1="**"
-	{
-	   return n1;
-	}
 }
 
 Token relation() : {
 Token n1 = null;
 }
 {
-	n1="=" 
+	( n1="=" | n1="<" | n1=">" | n1="]" | n1="[" | n1="]]" )
     {
        return n1;
     }
-	| n1="<" 
-    {
-       return n1;
-    }
-	| n1=">" 
-    {
-       return n1;
-    }
-	| n1="]" 
-    {
-       return n1;
-    }
-	| n1="[" 
-    {
-       return n1;
-    }
-	| n1="]]"
-	{
-	   return n1;
-	}
 }
 
 Token logicalop() : {
 Token n1 = null;
 }
 {
-	n1="&" 
+	( n1="&" | n1="!" )
 	{
-    return n1;
-    }
-	| n1="!" 
-    {
-    return n1;
+        return n1;
     }
 }

@@ -3,12 +3,14 @@ package com.ast;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
 import com.ast.Routine;
 import com.ast.command.Command;
 import com.ast.command.QuitCommand;
+import com.ast.expression.LocalVariableExpression;
 
 public class QuitCommandTest extends BaseTest {
 
@@ -102,6 +104,7 @@ public class QuitCommandTest extends BaseTest {
 		QuitCommand cc = (QuitCommand)cmd;
 		assertNull(cc.getPostCondition());
 	}
+
 
 }
 

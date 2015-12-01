@@ -11,6 +11,8 @@ import org.junit.Test;
 import com.ast.Routine;
 import com.ast.command.Command;
 import com.ast.command.ReadCommand;
+import com.ast.command.WriteCommand;
+import com.ast.expression.FormatExpression;
 import com.ast.expression.IndirectExpression;
 import com.ast.expression.LocalVariableExpression;
 import com.ast.expression.NumericConstant;
@@ -363,7 +365,10 @@ public class ReadCommandTest extends BaseTest {
 		assertNull(rarg.getReadCount());
 		assertFalse(rarg.isOneChar());
 		
-		assertEquals("!!##??", rarg.getFormat());
+		assertTrue(rarg.getFormat() instanceof FormatExpression);
+		FormatExpression fe = (FormatExpression)rarg.getFormat();
+		assertEquals("!!##??", fe.getFormat());
+		assertNull(fe.getArgList());
 		
 		Arg arg1 = cc.getArgList().getArgList().get(1);
 		assertTrue(arg1 instanceof ReadArg);
@@ -383,6 +388,92 @@ public class ReadCommandTest extends BaseTest {
 		LocalVariableExpression lve1 = (LocalVariableExpression)ie1.getValue();
 		assertNull(lve1.getArgList());
 		assertEquals("bar", lve1.getName());
+	}
+
+	@Test
+	public void testEleven() throws Exception {
+
+		String src = "TEST ;\r\n R ?10 \r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, ReadCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof ReadCommand);
+		ReadCommand cc = (ReadCommand)cmd;
+		assertNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(1, cc.getArgList().getArgList().size());
+		Arg arg = cc.getArgList().getArgList().get(0);
+		assertTrue(arg instanceof ReadArg);
+		ReadArg rarg = (ReadArg)arg;
+		assertNotNull(rarg.getFormat());
+		assertNull(rarg.getExpression());
+		assertFalse(rarg.isOneChar());
+		assertNull(rarg.getDestination());
+		assertTrue(rarg.getFormat() instanceof FormatExpression);
+		FormatExpression fe = (FormatExpression)rarg.getFormat();
+		assertEquals("?10", fe.getFormat());
+		assertNull(fe.getArgList());
+
+	}
+	
+	@Test
+	public void testTwelve() throws Exception {
+
+		String src = "TEST ;\r\n R ??10 \r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, ReadCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof ReadCommand);
+		ReadCommand cc = (ReadCommand)cmd;
+		assertNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(1, cc.getArgList().getArgList().size());
+		Arg arg = cc.getArgList().getArgList().get(0);
+		assertTrue(arg instanceof ReadArg);
+		ReadArg rarg = (ReadArg)arg;
+		assertNotNull(rarg.getFormat());
+		assertNull(rarg.getExpression());
+		assertFalse(rarg.isOneChar());
+		assertNull(rarg.getDestination());
+		assertTrue(rarg.getFormat() instanceof FormatExpression);
+		FormatExpression fe = (FormatExpression)rarg.getFormat();
+		assertEquals("??10", fe.getFormat());
+		assertNull(fe.getArgList());
+
+	}
+
+	@Test
+	public void testThirteen() throws Exception {
+
+		String src = "TEST ;\r\n R /SGR() \r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, ReadCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof ReadCommand);
+		ReadCommand cc = (ReadCommand)cmd;
+		assertNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(1, cc.getArgList().getArgList().size());
+		Arg arg = cc.getArgList().getArgList().get(0);
+		assertTrue(arg instanceof ReadArg);
+		ReadArg rarg = (ReadArg)arg;
+		assertNotNull(rarg.getFormat());
+		assertNull(rarg.getExpression());
+		assertFalse(rarg.isOneChar());
+		assertNull(rarg.getDestination());
+		assertTrue(rarg.getFormat() instanceof FormatExpression);
+		FormatExpression fe = (FormatExpression)rarg.getFormat();
+		assertEquals("/SGR", fe.getFormat());
+		assertNull(fe.getArgList());
 	}
 
 }
