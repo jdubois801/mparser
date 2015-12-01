@@ -1364,6 +1364,8 @@ Arg openarg() : {
 OpenArg result = new OpenArg();
 Expression node1 = null;
 OpenParam node2 = null;
+Token n1 = null;
+MnemonicSpaceList node3 = null;
 }
 {
 	"@" node1=expratom()
@@ -1371,8 +1373,12 @@ OpenParam node2 = null;
 	   result.setExpression(new IndirectExpression(node1));
 	   return result;
 	}
-	| node1=expr() ( ":" node2=openparameters() )?
+	| node1=expr() ( (n1=":::" node3=mnemonicspec()) | (n1=":" node2=openparameters()) )?  
     {
+        if (n1 != null && ":::".equals(n1.toString())) {
+            node2 = new OpenParam();
+            node2.setMnemonicSpaceList(node3);    
+        }
         result.setExpression(node1);
         result.setOpenParams(node2);
         return result;
@@ -1386,19 +1392,13 @@ Token n2 = null;
 MnemonicSpaceList node3 = null;
 }
 {
-    "::" node3=mnemonicspec() 
-    {
-        result.setDeviceParamList(node1);
-        result.setMnemonicSpaceList(node3);    
-        return result;
-    }
-    | n2=<NUMBER> ( ":" node3=mnemonicspec() )?
+    n2=<NUMBER> ( ":" node3=mnemonicspec() )?
     {
         result.setTimeout(new NumericConstant(n2.toString()));
         result.setMnemonicSpaceList(node3);    
         return result;
     }
-    // TODO - the grammar is ambiguous around deviceparams : expr() and timeout : expr()
+    // TODO - the grammar is ambiguous around deviceparams : expr() and timeout : expr() ( so make timeout a <NUMBER> )
 	| node1=deviceparams() ( ( " " n2=<NUMBER> ( ":" node3=mnemonicspec() )? ) | ( "::" node3=mnemonicspec() ) )?  
 	// deviceparams, timeout, mnemonicspec
 	{
@@ -1459,7 +1459,6 @@ ArgList node2 = null;
 {
 	<READ> ( node1=postcond() )? " " node2=readarglist()
 	{
-// TODO: implement
 		ReadCommand node = new ReadCommand(node1);
 		node.setArgList(node2);
 		return node;
@@ -1468,28 +1467,81 @@ ArgList node2 = null;
 
 ArgList readarglist() : {
 ArgList result = new ArgList();
+ReadArg node1 = null;
+ReadArg node2 = null;
 }
 {
-	readarg() {result.add(new Arg());} ( "," readarg() {result.add(new Arg());} )*
+	node1=readarg() {result.add(node1);} ( "," node2=readarg() {result.add(node2);} )*
 	{
 		return result;
 	}
 }
 
-void readarg() : {}
+ReadArg readarg() : {
+ReadArg result = new ReadArg();
+Token n1 = null;
+Expression node1 = null;
+Expression node2 = null;
+Expression node3 = null;
+Token n2 = null;
+StringBuffer buf = new StringBuffer();
+}
 {
-	"@" expratom()
-	| "*" glvn() ( " " expr() )?
-	| glvn() ( "#" expr() )? ( " " expr() )?
-	| ( format() )+
-	| <STRLIT>
+	"@" node1=expratom()
+	{
+	    result.setExpression(new IndirectExpression(node1));
+	    return result;
+	}
+    | n1=<STRLIT>
+    {
+        String strlit = n1.toString();
+        result.setLiteral(strlit.substring(1, strlit.length()-1));
+        return result;
+    }
+	| "*" node1=glvn() ( " " node3=expr() )?
+    {
+        result.setDestination(node1);
+        result.setOneChar(true);
+        if (node3 != null) {
+            result.setTimeout(node3);
+        }
+        return result;
+    }
+	| node1=glvn() ( "#" node2=expr() )? ( " " node3=expr() )?
+    {
+        result.setDestination(node1);
+        if (node2 != null) {
+            result.setReadCount(node2);
+        }
+        if (node3 != null) {
+            result.setTimeout(node3);
+        }
+        return result;
+    }
+	| ( n2=format() {buf.append(n2.toString());} )+
+    {
+        result.setFormat(buf.toString().replaceAll("\"", ""));
+        return result;
+    }
 }
 
-void format() : {}  // TODO
+Token format() : {
+Token n1 = null;
+} 
 {
-	"!"
-	| "#"
-	| "?"
+    // TODO- "/controlmnemonic" expression
+	n1="!"
+	{
+	   return n1;
+	}
+	| n1="#"
+    {
+       return n1;
+    }
+	| n1="?"
+    {
+       return n1;
+    }
 }
 
 SetCommand setcommand() : {
@@ -1517,9 +1569,10 @@ Arg node2 = null;
 	}
 }
 
-Arg setatom() : {
-Arg result = new Arg();
+SetArg setatom() : {
+SetArg result = new SetArg();
 Expression node1 = null;
+ArgList node2 = null;
 }
 {
     "@" node1=expratom()
@@ -1527,46 +1580,106 @@ Expression node1 = null;
         result.setExpression(new IndirectExpression(node1));
         return result;
     }
-	| setdestination() "=" expr()
+	| node2=setdestination() "=" node1=expr()
+	{
+	    result.setLeft(node2);
+        result.setRight(node1);
+	    return result;
+	}
+}
+
+ArgList setdestination() : {
+ArgList result = null;
+Arg node1 = null;
+}
+{
+	"(" result=setleftlist() ")"
+	{
+	    return result;
+	}
+	| node1=setleft()
+    {
+        result = new ArgList();
+        result.add(node1);
+        return result;
+    }
+}
+
+ArgList setleftlist() : {
+ArgList result = new ArgList();
+Arg node1 = null;
+Arg node2 = null;
+}
+{
+	node1=setleft() {result.add(node1);} ( "," node2=setleft() {result.add(node2);} )*
 	{
 	   return result;
 	}
 }
 
-void setdestination() : {}
-{
-	"(" setleftlist() ")"
-	| setleft()
-}
-
-void setleftlist() : {}
-{
-	setleft() ( "," setleft() )*
-}
-
-void setleft() : {
+Arg setleft() : {
+SetLeftArg result = new SetLeftArg();
 Expression node1 = null;
+Token n1 = null;
+String s1 = null;
 }
 {
-	leftrestricted()
-	| leftexpr()
-	| glvn()
-	
+	s1=leftrestricted()
+    {
+        result.setRestricted(s1);
+        return result;
+    }
+	| node1=leftexpr()
+    {
+        result.setExpression(node1);
+        return result;
+    }
+	| node1=glvn()
+    {
+        result.setExpression(node1);
+        return result;
+    }
 }
 
-void leftrestricted() : {}
-{
-	( <V_DEVICE> | <F_DATA> )  // TODO - need to throw an exception on "$DATA" which does not match
-	| <V_KEY>
-	| <V_X>
-	| <V_Y>
+String leftrestricted() : {
+Token n1 = null;
+}
+{ // TODO - need to throw an exception on "$DATA" which does not match
+  // TODO - or just do a post parse test that $DEVICE,$KEY,$X,$Y are the only allowed
+	( n1=<V_DEVICE> | n1=<F_DATA> )  
+    {
+        return "$DEVICE";
+    }
+	| n1=<V_KEY>
+    {
+        return "$KEY";
+    }
+	| n1=<V_X>
+    {
+        return n1.toString();
+    }
+	| n1=<V_Y>
+    {
+        return n1.toString();
+    }
 }
 
-void leftexpr() : {}
+Expression leftexpr() : {
+Expression result = null;
+}
 {
-	setev()
-	| setextract()
-	| setpiece()
+	result=setev()
+    {
+        return result;
+    }
+	| result=setextract()
+    {
+        return result;
+    }
+	| result=setpiece()
+    {
+        return result;
+    }
 }
 
 Expression setev() : {
@@ -1585,14 +1698,58 @@ StructuredSystemVariableExpression result = new StructuredSystemVariableExpressi
 	}
 }
 
-void setextract() : {}
+Expression setextract() : {
+FunctionExpression result = new FunctionExpression();
+Expression node1 = null;
+Expression node2 = null;
+Expression node3 = null;
+}
 {
-	<F_EXTRACT> "(" glvn() "," expr() ( "," expr() )? ")"
+	<F_EXTRACT> "(" node1=glvn() "," node2=expr() ( "," node3=expr() )? ")"
+    {
+        result.setName("$EXTRACT");
+        ArgList arglist = new ArgList();
+        result.setArgList(arglist);
+        if (node1 != null) {
+           arglist.add(new Arg(node1));
+        }
+        if (node2 != null) {
+           arglist.add(new Arg(node2));
+        }
+        if (node3 != null) {
+           arglist.add(new Arg(node3));
+        }
+        return result;
+    }
 }
 
-void setpiece() : {}
+Expression setpiece() : {
+FunctionExpression result = new FunctionExpression();
+Expression node1 = null;
+Expression node2 = null;
+Expression node3 = null;
+Expression node4 = null;
+}
 {
-	<F_PIECE> "(" glvn() "," expr() ( "," expr() )? ( "," expr() )? ")"
+	<F_PIECE> "(" node1=glvn() "," node2=expr() ( "," node3=expr() )? ( "," node4=expr() )? ")"
+	{
+	    result.setName("$PIECE");
+	    ArgList arglist = new ArgList();
+	    result.setArgList(arglist);
+	    if (node1 != null) {
+	       arglist.add(new Arg(node1));
+	    }
+        if (node2 != null) {
+           arglist.add(new Arg(node2));
+        }
+        if (node3 != null) {
+           arglist.add(new Arg(node3));
+        }
+        if (node4 != null) {
+           arglist.add(new Arg(node4));
+        }
+        return result;
+	}
 }
 
 UseCommand usecommand() : {
@@ -1602,7 +1759,6 @@ ArgList node2 = null;
 {
 	<USE> ( node1=postcond() )? " " node2=usearglist()
 	{
-// TODO: implement
 		UseCommand node = new UseCommand(node1);
 		node.setArgList(node2);
 		return node;
@@ -1622,15 +1778,22 @@ Arg node2 = null;
 }
 
 Arg usearg() : {
-Arg result = new Arg();
+UseArg result = new UseArg();
+Expression node1 = null;
+DeviceParamList node2 = null;
+Expression node3 = null;
 }
 {
-	"@" expratom()
+	"@" node1=expratom()
 	{
+	   result.setExpression(new IndirectExpression(node1));
 	   return result;
 	}
-	| expr() ( ":" deviceparams() )? ( ":" mnemonicspace() )?
+	| node1=expr() ( ":" node2=deviceparams() )? ( ":" node3=mnemonicspace() )?
 	{
+	   result.setExpression(node1);
+	   result.setDeviceParams(node2);
+	   result.setMnemonicSpace(node3);
 	   return result;
 	}
 }
@@ -1641,7 +1804,6 @@ PostCondition node1 = null;
 {
 	<VIEW> ( node1=postcond() )? 
 	{
-// TODO: implement
 		ViewCommand node = new ViewCommand(node1);
 		return node;
 	}
@@ -1654,7 +1816,6 @@ ArgList node2 = null;
 {
 	<WRITE> ( node1=postcond() )? " " node2=writearglist()
 	{
-// TODO: implement
 		WriteCommand node = new WriteCommand(node1);
 		node.setArgList(node2);
 		return node;
@@ -1673,25 +1834,33 @@ Arg node2 = null;
 	}
 }
 
-Arg writearg() : {
-Arg result = new Arg();
+WriteArg writearg() : {
+WriteArg result = new WriteArg();
+Expression node1 = null;
+Token n2 = null;
+StringBuffer buf = new StringBuffer();
 }
 {
-	"@" expratom()
+	"@" node1=expratom()
 	{
-	   return result;
+	    result.setExpression(new IndirectExpression(node1));
+	    return result;
 	}
-	| "*" expr()
+	| "*" node1=expr()
 	{
-	   return result;
+	    result.setSource(node1);
+        result.setOneChar(true);
+	    return result;
 	}
-	| ( format() )+
-	{
-	   return result;
+	| ( n2=format() {buf.append(n2.toString());} )+
+	{  // TODO- "#" doesn't seem to be a valid write format char
+	    result.setFormat(buf.toString().replaceAll("\"", ""));
+	    return result;
 	}
-	| expr()
+	| node1=expr()
 	{
-	   return result;
+        result.setSource(node1);
+	    return result;
 	}
 }
 
@@ -1702,7 +1871,6 @@ ArgList node2 = null;
 {
 	<XECUTE> ( node1=postcond() )? " " node2=xarglist()
 	{
-// TODO: implement
 		XecuteCommand node = new XecuteCommand(node1);
 		node.setArgList(node2);
 		return node;
@@ -1711,20 +1879,33 @@ ArgList node2 = null;
 
 ArgList xarglist() : {
 ArgList result = new ArgList();
+Arg node1 = null;
+Arg node2 = null;
 }
 {
-	xarg() {result.add(new Arg());} ( "," xarg() {result.add(new Arg());} )*
+	node1=xarg() {result.add(node1);} ( "," node2=xarg() {result.add(node2);} )*
 	{
 		return result;
 	}
 }
 
-void xarg() : {
-PostCondition node1 = null;
+Arg xarg() : {
+XArg result = new XArg();
+Expression node1 = null;
+PostCondition node2 = null;
 }
 {
-	"@" expratom()
-	| expr() ( node1=postcond() )?
+	"@" node1=expratom()
+	{
+	    result.setExpression(new IndirectExpression(node1));
+	    return result;
+	}
+	| node1=expr() ( node2=postcond() )?
+    {
+        result.setExpression(node1);
+        result.setPostCondition(node2);
+        return result;
+    }
 }
 
 PostCondition postcond() : {

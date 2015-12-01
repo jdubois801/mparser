@@ -14,6 +14,7 @@ import com.ast.Routine;
 import com.ast.command.CloseCommand;
 import com.ast.command.Command;
 import com.ast.command.ViewCommand;
+import com.ast.expression.NumericConstant;
 import com.validation.RoutineValidator;
 
 public class ViewCommandTest extends BaseTest {
@@ -55,6 +56,10 @@ public class ViewCommandTest extends BaseTest {
 		assertTrue(cmd instanceof ViewCommand);
 		ViewCommand cc = (ViewCommand)cmd;
 		assertNotNull(cc.getPostCondition());
+		assertNotNull(cc.getPostCondition().getExpr());
+		assertTrue(cc.getPostCondition().getExpr() instanceof NumericConstant);
+		NumericConstant nconst = (NumericConstant)cc.getPostCondition().getExpr();
+		assertEquals("0", nconst.getValue());
 	}
 }
 

@@ -3,12 +3,17 @@ package com.ast;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
 import com.ast.Routine;
 import com.ast.command.Command;
 import com.ast.command.ReadCommand;
+import com.ast.expression.IndirectExpression;
+import com.ast.expression.LocalVariableExpression;
+import com.ast.expression.NumericConstant;
 
 public class ReadCommandTest extends BaseTest {
 
@@ -36,6 +41,19 @@ public class ReadCommandTest extends BaseTest {
 		assertTrue(cmd instanceof ReadCommand);
 		ReadCommand cc = (ReadCommand)cmd;
 		assertNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(1, cc.getArgList().getArgList().size());
+		Arg arg0 = cc.getArgList().getArgList().get(0);
+		assertTrue(arg0 instanceof ReadArg);
+		ReadArg rarg = (ReadArg)arg0;
+		assertNull(rarg.getExpression());
+		assertNotNull(rarg.getDestination());
+		assertTrue(rarg.getDestination() instanceof LocalVariableExpression);
+		LocalVariableExpression lve = (LocalVariableExpression)rarg.getDestination();
+		assertEquals("foo", lve.getName());
+		assertNull(lve.getArgList());
 	}
 
 	@Test
@@ -49,6 +67,23 @@ public class ReadCommandTest extends BaseTest {
 		assertTrue(cmd instanceof ReadCommand);
 		ReadCommand cc = (ReadCommand)cmd;
 		assertNotNull(cc.getPostCondition());
+		assertNotNull(cc.getPostCondition().getExpr());
+		assertTrue(cc.getPostCondition().getExpr() instanceof NumericConstant);
+		NumericConstant nconst = (NumericConstant)cc.getPostCondition().getExpr();
+		assertEquals("0", nconst.getValue());
+		
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(1, cc.getArgList().getArgList().size());
+		Arg arg0 = cc.getArgList().getArgList().get(0);
+		assertTrue(arg0 instanceof ReadArg);
+		ReadArg rarg = (ReadArg)arg0;
+		assertNull(rarg.getExpression());
+		assertNotNull(rarg.getDestination());
+		assertTrue(rarg.getDestination() instanceof LocalVariableExpression);
+		LocalVariableExpression lve = (LocalVariableExpression)rarg.getDestination();
+		assertEquals("foo", lve.getName());
+		assertNull(lve.getArgList());
 	}
 
 	@Test
@@ -62,6 +97,30 @@ public class ReadCommandTest extends BaseTest {
 		assertTrue(cmd instanceof ReadCommand);
 		ReadCommand cc = (ReadCommand)cmd;
 		assertNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(2, cc.getArgList().getArgList().size());
+		Arg arg0 = cc.getArgList().getArgList().get(0);
+		assertTrue(arg0 instanceof ReadArg);
+		ReadArg rarg = (ReadArg)arg0;
+		assertNull(rarg.getExpression());
+		assertNull(rarg.getDestination());
+		assertNull(rarg.getFormat());
+		assertEquals("boo", rarg.getLiteral());
+		
+		Arg arg1 = cc.getArgList().getArgList().get(1);
+		assertTrue(arg1 instanceof ReadArg);
+		ReadArg rarg1 = (ReadArg)arg1;
+		assertNull(rarg1.getExpression());
+		assertNotNull(rarg1.getDestination());
+		assertNull(rarg1.getLiteral());
+		assertNull(rarg1.getFormat());
+		assertTrue(rarg1.getDestination() instanceof LocalVariableExpression);
+		LocalVariableExpression lve1 = (LocalVariableExpression)rarg1.getDestination();
+		assertEquals("foo", lve1.getName());
+		assertNull(lve1.getArgList());
+
 	}
 
 	@Test
@@ -75,6 +134,24 @@ public class ReadCommandTest extends BaseTest {
 		assertTrue(cmd instanceof ReadCommand);
 		ReadCommand cc = (ReadCommand)cmd;
 		assertNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(1, cc.getArgList().getArgList().size());
+		Arg arg0 = cc.getArgList().getArgList().get(0);
+		assertTrue(arg0 instanceof ReadArg);
+		ReadArg rarg = (ReadArg)arg0;
+		assertNull(rarg.getExpression());
+		assertNotNull(rarg.getDestination());
+		assertTrue(rarg.getDestination() instanceof LocalVariableExpression);
+		LocalVariableExpression lve = (LocalVariableExpression)rarg.getDestination();
+		assertEquals("foo", lve.getName());
+		assertNull(lve.getArgList());
+		
+		assertNotNull(rarg.getReadCount());
+		assertTrue(rarg.getReadCount() instanceof NumericConstant);
+		NumericConstant nconst = (NumericConstant)rarg.getReadCount();
+		assertEquals("10", nconst.getValue());
 	}
 
 	@Test
@@ -88,6 +165,25 @@ public class ReadCommandTest extends BaseTest {
 		assertTrue(cmd instanceof ReadCommand);
 		ReadCommand cc = (ReadCommand)cmd;
 		assertNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(1, cc.getArgList().getArgList().size());
+		Arg arg0 = cc.getArgList().getArgList().get(0);
+		assertTrue(arg0 instanceof ReadArg);
+		ReadArg rarg = (ReadArg)arg0;
+		assertNull(rarg.getExpression());
+		assertNotNull(rarg.getDestination());
+		assertTrue(rarg.getDestination() instanceof LocalVariableExpression);
+		LocalVariableExpression lve = (LocalVariableExpression)rarg.getDestination();
+		assertEquals("foo", lve.getName());
+		assertNull(lve.getArgList());
+		assertFalse(rarg.isOneChar());
+
+		assertNotNull(rarg.getTimeout());
+		assertTrue(rarg.getTimeout() instanceof NumericConstant);
+		NumericConstant nconst = (NumericConstant)rarg.getTimeout();
+		assertEquals("10", nconst.getValue());
 	}
 
 	@Test
@@ -101,6 +197,29 @@ public class ReadCommandTest extends BaseTest {
 		assertTrue(cmd instanceof ReadCommand);
 		ReadCommand cc = (ReadCommand)cmd;
 		assertNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(1, cc.getArgList().getArgList().size());
+		Arg arg0 = cc.getArgList().getArgList().get(0);
+		assertTrue(arg0 instanceof ReadArg);
+		ReadArg rarg = (ReadArg)arg0;
+		assertNull(rarg.getExpression());
+		assertNotNull(rarg.getDestination());
+		assertTrue(rarg.getDestination() instanceof LocalVariableExpression);
+		LocalVariableExpression lve = (LocalVariableExpression)rarg.getDestination();
+		assertEquals("foo", lve.getName());
+		assertNull(lve.getArgList());
+		
+		assertNotNull(rarg.getReadCount());
+		assertTrue(rarg.getReadCount() instanceof NumericConstant);
+		NumericConstant nconst = (NumericConstant)rarg.getReadCount();
+		assertEquals("10", nconst.getValue());
+		
+		assertNotNull(rarg.getTimeout());
+		assertTrue(rarg.getTimeout() instanceof NumericConstant);
+		NumericConstant nconst1 = (NumericConstant)rarg.getTimeout();
+		assertEquals("11", nconst1.getValue());
 	}
 
 	@Test
@@ -114,6 +233,22 @@ public class ReadCommandTest extends BaseTest {
 		assertTrue(cmd instanceof ReadCommand);
 		ReadCommand cc = (ReadCommand)cmd;
 		assertNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(1, cc.getArgList().getArgList().size());
+		Arg arg0 = cc.getArgList().getArgList().get(0);
+		assertTrue(arg0 instanceof ReadArg);
+		ReadArg rarg = (ReadArg)arg0;
+		assertNull(rarg.getExpression());
+		assertNull(rarg.getTimeout());
+		assertNull(rarg.getFormat());
+		assertNotNull(rarg.getDestination());
+		assertTrue(rarg.getDestination() instanceof LocalVariableExpression);
+		LocalVariableExpression lve = (LocalVariableExpression)rarg.getDestination();
+		assertEquals("foo", lve.getName());
+		assertNull(lve.getArgList());
+		assertTrue(rarg.isOneChar());
 	}
 
 	@Test
@@ -127,6 +262,26 @@ public class ReadCommandTest extends BaseTest {
 		assertTrue(cmd instanceof ReadCommand);
 		ReadCommand cc = (ReadCommand)cmd;
 		assertNull(cc.getPostCondition());
+
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(1, cc.getArgList().getArgList().size());
+		Arg arg0 = cc.getArgList().getArgList().get(0);
+		assertTrue(arg0 instanceof ReadArg);
+		ReadArg rarg = (ReadArg)arg0;
+		assertNull(rarg.getExpression());
+		assertNull(rarg.getFormat());
+		assertNotNull(rarg.getDestination());
+		assertTrue(rarg.getDestination() instanceof LocalVariableExpression);
+		LocalVariableExpression lve = (LocalVariableExpression)rarg.getDestination();
+		assertEquals("foo", lve.getName());
+		assertNull(lve.getArgList());
+		assertTrue(rarg.isOneChar());
+
+		assertNotNull(rarg.getTimeout());
+		assertTrue(rarg.getTimeout() instanceof NumericConstant);
+		NumericConstant nconst1 = (NumericConstant)rarg.getTimeout();
+		assertEquals("10", nconst1.getValue());
 	}
 
 	@Test
@@ -140,6 +295,47 @@ public class ReadCommandTest extends BaseTest {
 		assertTrue(cmd instanceof ReadCommand);
 		ReadCommand cc = (ReadCommand)cmd;
 		assertNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(2, cc.getArgList().getArgList().size());
+		Arg arg0 = cc.getArgList().getArgList().get(0);
+		assertTrue(arg0 instanceof ReadArg);
+		ReadArg rarg = (ReadArg)arg0;
+		assertNotNull(rarg.getExpression());
+		assertNull(rarg.getFormat());
+		assertNull(rarg.getDestination());
+		assertNull(rarg.getLiteral());
+		assertNull(rarg.getReadCount());
+		assertFalse(rarg.isOneChar());
+		
+		assertTrue(rarg.getExpression() instanceof IndirectExpression);
+		IndirectExpression ie = (IndirectExpression)rarg.getExpression();
+		assertNull(ie.getIndirectArgList());
+		assertNotNull(ie.getValue());
+		assertTrue(ie.getValue() instanceof LocalVariableExpression);
+		LocalVariableExpression lve = (LocalVariableExpression)ie.getValue();
+		assertNull(lve.getArgList());
+		assertEquals("foo", lve.getName());
+		
+		Arg arg1 = cc.getArgList().getArgList().get(1);
+		assertTrue(arg1 instanceof ReadArg);
+		ReadArg rarg1 = (ReadArg)arg1;
+		assertNotNull(rarg1.getExpression());
+		assertNull(rarg1.getFormat());
+		assertNull(rarg1.getDestination());
+		assertNull(rarg1.getLiteral());
+		assertNull(rarg1.getReadCount());
+		assertFalse(rarg1.isOneChar());
+		
+		assertTrue(rarg1.getExpression() instanceof IndirectExpression);
+		IndirectExpression ie1 = (IndirectExpression)rarg1.getExpression();
+		assertNull(ie1.getIndirectArgList());
+		assertNotNull(ie1.getValue());
+		assertTrue(ie1.getValue() instanceof LocalVariableExpression);
+		LocalVariableExpression lve1 = (LocalVariableExpression)ie1.getValue();
+		assertNull(lve1.getArgList());
+		assertEquals("bar", lve1.getName());
 	}
 	
 	@Test
@@ -153,6 +349,40 @@ public class ReadCommandTest extends BaseTest {
 		assertTrue(cmd instanceof ReadCommand);
 		ReadCommand cc = (ReadCommand)cmd;
 		assertNull(cc.getPostCondition());
+		
+		assertNotNull(cc.getArgList());
+		assertNotNull(cc.getArgList().getArgList());
+		assertEquals(2, cc.getArgList().getArgList().size());
+		Arg arg0 = cc.getArgList().getArgList().get(0);
+		assertTrue(arg0 instanceof ReadArg);
+		ReadArg rarg = (ReadArg)arg0;
+		assertNull(rarg.getExpression());
+		assertNotNull(rarg.getFormat());
+		assertNull(rarg.getDestination());
+		assertNull(rarg.getLiteral());
+		assertNull(rarg.getReadCount());
+		assertFalse(rarg.isOneChar());
+		
+		assertEquals("!!##??", rarg.getFormat());
+		
+		Arg arg1 = cc.getArgList().getArgList().get(1);
+		assertTrue(arg1 instanceof ReadArg);
+		ReadArg rarg1 = (ReadArg)arg1;
+		assertNotNull(rarg1.getExpression());
+		assertNull(rarg1.getFormat());
+		assertNull(rarg1.getDestination());
+		assertNull(rarg1.getLiteral());
+		assertNull(rarg1.getReadCount());
+		assertFalse(rarg1.isOneChar());
+		
+		assertTrue(rarg1.getExpression() instanceof IndirectExpression);
+		IndirectExpression ie1 = (IndirectExpression)rarg1.getExpression();
+		assertNull(ie1.getIndirectArgList());
+		assertNotNull(ie1.getValue());
+		assertTrue(ie1.getValue() instanceof LocalVariableExpression);
+		LocalVariableExpression lve1 = (LocalVariableExpression)ie1.getValue();
+		assertNull(lve1.getArgList());
+		assertEquals("bar", lve1.getName());
 	}
 
 }
