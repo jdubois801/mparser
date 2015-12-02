@@ -947,7 +947,7 @@ public class SetCommandTest extends BaseTest {
 	@Test
 	public void testEighteen() throws Exception {
 
-		String src = "TEST ;\r\n S F(A,H('L))=C(H(W[(W/S))) \r\n";
+		String src = "TEST ;\r\n F  S F(A,H('L))=C(H(W[(W/S))) \r\n";
 		Routine routine = parseAndValidate(src); 
 		Command cmd = findFirstCommand(routine, SetCommand.class);
 
@@ -958,5 +958,19 @@ public class SetCommandTest extends BaseTest {
 		assertNotNull(cc.getArgList());
 	}
 
+	@Test
+	public void testNineteen() throws Exception {
+
+		String src = "TEST ;\r\n S H(N?.E)=$O(C(H('$G(N)))) \r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, SetCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof SetCommand);
+		SetCommand cc = (SetCommand)cmd;
+		assertNull(cc.getPostCondition());
+		assertNotNull(cc.getArgList());
+	}
+	
 }
 

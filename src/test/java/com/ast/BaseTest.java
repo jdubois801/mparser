@@ -8,6 +8,9 @@ import com.MParser;
 import com.ParseException;
 import com.ast.command.Command;
 import com.ast.command.CommandList;
+import com.ast.command.ElseCommand;
+import com.ast.command.ForCommand;
+import com.ast.command.IfCommand;
 import com.post.RoutineProcessor;
 import com.validation.RoutineValidator;
 
@@ -46,24 +49,38 @@ public abstract class BaseTest {
 	}
 
 	private List<Command> findLines(Routine routine) {
-		List<Command> result = new ArrayList<>();
-		LineList ll = routine.getLineList();
 		
-		// TODO - add descent into embedded line lists under IF, ELSE, and FOR commands
-		if (ll != null) {
-			for (Line line : ll.getLineList()) {
+		return findCommands(routine.getLineList());
+	}
+	
+	private List<Command> findCommands(LineList linelist) {
+		List<Command> result = new ArrayList<>();
+		
+		if (linelist != null) {
+			for (Line line : linelist.getLineList()) {
 				CommandList cl = line.getCommandList();
 				
 				if (!cl.getCommandList().isEmpty()) {
-					result.addAll(cl.getCommandList());
+					for (Command cmd : cl.getCommandList()) {
+						result.add(cmd);
+						
+						if (cmd instanceof IfCommand) {
+							result.addAll(findCommands(((IfCommand)cmd).getLineList()));
+						}
+						else if (cmd instanceof ElseCommand) {
+							result.addAll(findCommands(((ElseCommand)cmd).getLineList()));
+						}
+						else if (cmd instanceof ForCommand) {
+							result.addAll(findCommands(((ForCommand)cmd).getLineList()));
+						}
+					}
 				}
 			}
 		}
 		
 		return result;
-		
 	}
-	
+
 	protected Routine parseAndValidate(String src) throws ParseException {
 		MParser parser = new MParser(new StringReader(src));
 		parser.routine();

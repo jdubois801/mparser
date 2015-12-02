@@ -15,27 +15,7 @@ public class MParser {
 	public static final String TEST_DATA = 
 	"XXROUTINE ;c\r\n"+
 	" ;comment\r\n"+
-//	" B \r\n"+
-//	" C \r\n"+
-//	" Q:'(1+2!3_4+5-6*7/8#9\\10**11=12<13>14]15[16]]17&18!19+\"20\") \r\n"
-//	" F \r\n"+
-//	" F name=1:2 Q:0 \r\n"+
-//	" K:name @name,name2,^aa,(a,b),p(3),^q(3,4),^$CHARACTER \r\n"
-//	" I 1,\"false\",@foo,(1+name),p(3) \r\n"
-//	" C foo \r\n"
-//	" D foo \r\n"
-//	" G:1 foo:0,bar:(quack+1) \r\n"
-//	" H:0 \r\n"
-//	" M:0 @bar,foo=^bar(12) \r\n"
-//	" N foo \r\n"
 	" S (foo,bar)=3,$X=2,$Y=3,$DEVICE=4,$KEY=5,$ECODE=6,$ETRAP=7,$P(foo,\"^\",3)=\"3\",$E(bar,\"^\")=9 \r\n"
-//	" R foo,bar#2,*q \r\n"
-//	" U foo \r\n"
-//	" O foo \r\n"
-//	" W:0 foo,*foo \r\n"
-//	" X bob \r\n"
-//	" L foo \r\n"
-//	" J ^foo(1) \r\n"
 	;
 
 	public static void main(String[] args) {
@@ -279,7 +259,7 @@ Token label() : {
 Token n1;
 }
 {
-	n1=<NAME> 
+	n1=name()
 	{
 		return n1;
 	}
@@ -620,6 +600,7 @@ Token n1 = null;
 Token n2 = null;
 Token n3 = null;
 Token n4 = null;
+Expression node4 = null;
 }
 {
 	"^" ( ( "|" node3=expr() "|" )? n4=<NAME> | "@" indexpr=expratom() )
@@ -636,13 +617,13 @@ Token n4 = null;
 	    return result;
 	}
 	// TODO doarg() and entryref() are ambiguous on "@foo"
-	| n1=<NAME> ( "+" n2=<NUMBER> )?  ( "^" ( ( "|" node3=expr() "|" )? n4=<NAME> | "@" indexpr=expratom() ) )?
+	| n1=name() ( "+" node4=expr() )?  ( "^" ( ( "|" node3=expr() "|" )? n4=name() | "@" indexpr=expratom() ) )?
 	{
 	    result.setName(n1.toString());
-	    if (n2 != null) {
-	       result.setOffset(n2.toString());
+	    if (node4 != null) {
+	       result.setOffset(node4);
 	    }
-        if (n3 != null) {
+        if (node3 != null) {
            result.setEnvironment(node3);
         }
         if (n4 != null) {
@@ -695,7 +676,11 @@ Expression node3 = null;
 }
 {
 	LOOKAHEAD( 4 )
-	<FOR> " " dest=lvn() "=" node1=expr() ( ":" node2=expr() )? ( ":" node3=expr() )?
+    <FOR> "  "
+    {
+        return new ForCommand();
+    }
+    | <FOR> " " dest=lvn() "=" node1=expr() ( ":" node2=expr() )? ( ":" node3=expr() )?
 	{
 		ForCommand node = new ForCommand();
 		node.setDestination(dest);
@@ -704,10 +689,6 @@ Expression node3 = null;
 		node.setExpression3(node3);
 		return node;
 	}
-	| <FOR> (" ")*
-	{
-		return new ForCommand();
-	}
 }
 
 GotoCommand gotocommand() : {
@@ -715,7 +696,7 @@ PostCondition node1 = null;
 ArgList node2 = null;
 }
 {
-	<GOTO> ( node1=postcond() )? " " node2=gotoargs()
+	<GOTO> ( node1=postcond() )? ( " " node2=gotoargs() )?
 	{
 		GotoCommand node = new GotoCommand(node1);
 		node.setArgList(node2);
@@ -1450,7 +1431,7 @@ PostCondition node1 = null;
 Expression node2 = null;
 }
 {
-	<QUIT> ( node1=postcond() )? (" ")* ( node2=expr() )?
+	<QUIT> ( node1=postcond() )? ( (" " node2=expr()) | ("  ") )?
 	{
 		QuitCommand node = new QuitCommand(node1);
 		node.setReturnExpression(node2);

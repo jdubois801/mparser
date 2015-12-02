@@ -177,7 +177,10 @@ public class DoCommandTest extends BaseTest {
 		assertEquals("label", lvexpr.getName());
 		assertNull(lvexpr.getEnvironment());
 		assertEquals("routine", lvexpr.getRoutine());
-		assertEquals("2", lvexpr.getOffset());
+		assertNotNull(lvexpr.getOffset());
+		assertTrue(lvexpr.getOffset() instanceof NumericConstant);
+		NumericConstant nconst = (NumericConstant)lvexpr.getOffset();
+		assertEquals("2", nconst.getValue());
 	}
 
 	@Test
@@ -227,7 +230,10 @@ public class DoCommandTest extends BaseTest {
 		assertEquals("label", lvexpr.getName());
 		//assertEquals("environment", lvexpr.getEnvironment());
 		assertEquals("routine", lvexpr.getRoutine());
-		assertEquals("2", lvexpr.getOffset());
+		assertNotNull(lvexpr.getOffset());
+		assertTrue(lvexpr.getOffset() instanceof NumericConstant);
+		NumericConstant nconst = (NumericConstant)lvexpr.getOffset();
+		assertEquals("2", nconst.getValue());
 	}
 
 	@Test
@@ -284,7 +290,10 @@ public class DoCommandTest extends BaseTest {
 		assertEquals("label", lvexpr.getName());
 		assertNull(lvexpr.getEnvironment());
 		assertNull(lvexpr.getRoutine());
-		assertEquals("2", lvexpr.getOffset());
+		assertNotNull(lvexpr.getOffset());
+		assertTrue(lvexpr.getOffset() instanceof NumericConstant);
+		NumericConstant nconst = (NumericConstant)lvexpr.getOffset();
+		assertEquals("2", nconst.getValue());
 		
 		assertNotNull(lvexpr.getIndirectExpression());
 		assertTrue(lvexpr.getIndirectExpression() instanceof IndirectExpression);

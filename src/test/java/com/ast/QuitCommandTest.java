@@ -105,6 +105,32 @@ public class QuitCommandTest extends BaseTest {
 		assertNull(cc.getPostCondition());
 	}
 
+	@Test
+	public void testSeven() throws Exception {
 
+		String src = "TEST ;\r\n Q  S S=1\r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, QuitCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof QuitCommand);
+		QuitCommand cc = (QuitCommand)cmd;
+		assertNull(cc.getPostCondition());
+		assertNull(cc.getReturnExpression());
+	}
+
+	@Test
+	public void testEight() throws Exception {
+
+		String src = "TEST ;\r\n Q:1  S S=1\r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, QuitCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof QuitCommand);
+		QuitCommand cc = (QuitCommand)cmd;
+		assertNotNull(cc.getPostCondition());
+		assertNull(cc.getReturnExpression());
+	}
 }
 

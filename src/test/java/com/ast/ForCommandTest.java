@@ -37,7 +37,7 @@ public class ForCommandTest extends BaseTest {
 	@Test
 	public void testOne() throws Exception {
 
-		String src = "TEST ;\r\n F \r\n";
+		String src = "TEST ;\r\n F  \r\n";
 		Routine routine = parseAndValidate(src); 
 		Command cmd = findFirstCommand(routine, ForCommand.class);
 
@@ -90,7 +90,7 @@ public class ForCommandTest extends BaseTest {
 	@Test
 	public void testFive() throws Exception {
 
-		String src = "TEST ;\r\n F \r\n . S a=0\r\n . S a=1\r\n . S b=2 Q\r\n Q\r\n";
+		String src = "TEST ;\r\n F  \r\n . S a=0\r\n . S a=1\r\n . S b=2 Q\r\n Q\r\n";
 		Routine routine = parseAndValidate(src); 
 		Command cmd = findFirstCommand(routine, ForCommand.class);
 
@@ -109,7 +109,7 @@ public class ForCommandTest extends BaseTest {
 	@Test
 	public void testSix() throws Exception {
 
-		String src = "TEST ;\r\n F S b=2 Q\r\n Q\r\n";
+		String src = "TEST ;\r\n F  S b=2 Q\r\n Q\r\n";
 		Routine routine = parseAndValidate(src); 
 		Command cmd = findFirstCommand(routine, ForCommand.class);
 

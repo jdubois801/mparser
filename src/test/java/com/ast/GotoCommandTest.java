@@ -163,7 +163,10 @@ public class GotoCommandTest extends BaseTest {
 		assertTrue(arg0.getExpression() instanceof EntryRef);
 		EntryRef eref = (EntryRef)arg0.getExpression();
 		assertEquals("label", eref.getName());
-		assertEquals("2", eref.getOffset());
+		assertNotNull(eref.getOffset());
+		assertTrue(eref.getOffset() instanceof NumericConstant);
+		NumericConstant nconst = (NumericConstant)eref.getOffset();
+		assertEquals("2", nconst.getValue());
 		assertEquals("routine", eref.getRoutine());
 	}
 	
@@ -187,8 +190,11 @@ public class GotoCommandTest extends BaseTest {
 		assertTrue(arg0.getExpression() instanceof EntryRef);
 		EntryRef eref = (EntryRef)arg0.getExpression();
 		assertEquals("label", eref.getName());
-		assertEquals("2", eref.getOffset());
-//		assertEquals("environment", eref.getEnvironment());
+		assertNotNull(eref.getOffset());
+		assertTrue(eref.getOffset() instanceof NumericConstant);
+		NumericConstant nconst = (NumericConstant)eref.getOffset();
+		assertEquals("2", nconst.getValue());  
+		assertNotNull(eref.getEnvironment());
 		assertEquals("routine", eref.getRoutine());
 	}
 	

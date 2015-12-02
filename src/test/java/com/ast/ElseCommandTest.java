@@ -63,7 +63,7 @@ public class ElseCommandTest extends BaseTest {
 	@Test
 	public void testThree() throws Exception {
 
-		String src = "TEST ;\r\n I @foo \r\n . S a=0\r\n E\r\n . S b=1 F\r\n . . S a=1 Q\r\n . S b=2\r\n Q\r\n";
+		String src = "TEST ;\r\n I @foo \r\n . S a=0\r\n E\r\n . S b=1 F  \r\n . . S a=1 Q\r\n . S b=2\r\n Q\r\n";
 		Routine routine = parseAndValidate(src); 
 		Command cmd = findFirstCommand(routine, ElseCommand.class);
 

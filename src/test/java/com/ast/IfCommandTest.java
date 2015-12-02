@@ -115,7 +115,7 @@ public class IfCommandTest extends BaseTest {
 	@Test
 	public void testSeven() throws Exception {
 
-		String src = "TEST ;\r\n I @foo \r\n . S a=0\r\n . F\r\n . . S a=1 Q\r\n . S b=2\r\n Q\r\n";
+		String src = "TEST ;\r\n I @foo \r\n . S a=0\r\n . F  \r\n . . S a=1 Q\r\n . S b=2\r\n Q\r\n";
 		Routine routine = parseAndValidate(src); 
 		Command cmd = findFirstCommand(routine, IfCommand.class);
 

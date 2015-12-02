@@ -4,7 +4,7 @@ import com.ast.expression.Expression;
 
 public class EntryRef extends Expression {
 	private String name;
-	private String offset;
+	private Expression offset;
 	private Expression environment;
 	private String routine;
 	private Expression indirectExpression;
@@ -17,11 +17,11 @@ public class EntryRef extends Expression {
 		this.name = name;
 	}
 
-	public String getOffset() {
+	public Expression getOffset() {
 		return offset;
 	}
 
-	public void setOffset(String offset) {
+	public void setOffset(Expression offset) {
 		this.offset = offset;
 	}
 
