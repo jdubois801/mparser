@@ -2,6 +2,7 @@ package com.ast;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -9,6 +10,7 @@ import org.junit.Test;
 import com.ast.command.Command;
 import com.ast.command.QuitCommand;
 import com.ast.expression.FunctionExpression;
+import com.ast.expression.LocalVariableExpression;
 import com.ast.expression.NumericConstant;
 
 
@@ -1005,7 +1007,7 @@ public class BuiltinFunctionExpressionTest extends BaseTest {
 	@Test
 	public void testSeventySix() throws Exception {
 
-		String src = "TEST ;\r\n Q:($S(0)) foo \r\n"; 
+		String src = "TEST ;\r\n Q:($S(0:n,1:'n)) foo \r\n"; 
 		Routine routine = parseAndValidate(src); 
 		Command cmd = findFirstCommand(routine, QuitCommand.class);
 
@@ -1019,22 +1021,26 @@ public class BuiltinFunctionExpressionTest extends BaseTest {
 		assertEquals("$SELECT", func.getName());
 		assertNotNull(func.getArgList());
 		assertNotNull(func.getArgList().getArgList());
-		assertEquals(1, func.getArgList().getArgList().size());
+		assertEquals(2, func.getArgList().getArgList().size());
 
 		Arg arg0 = func.getArgList().getArgList().get(0);
-		assertNotNull(arg0);
-		assertNotNull(arg0.getExpression());
-
-		assertTrue(arg0.getExpression() instanceof NumericConstant);
-		
-		NumericConstant nconst = (NumericConstant)arg0.getExpression();
+		assertTrue(arg0 instanceof SelectArg);
+		SelectArg sarg0 = (SelectArg)arg0;
+		assertNotNull(sarg0.getExpression());
+		assertTrue(sarg0.getExpression() instanceof NumericConstant);
+		NumericConstant nconst = (NumericConstant)sarg0.getExpression();
 		assertEquals("0", nconst.getValue());
+		assertNotNull(sarg0.getOption());
+		assertTrue(sarg0.getOption() instanceof LocalVariableExpression);
+		LocalVariableExpression lve = (LocalVariableExpression)sarg0.getOption();
+		assertNull(lve.getArgList());
+		assertEquals("n", lve.getName());
 	}
 
 	@Test
 	public void testSeventySeven() throws Exception {
 
-		String src = "TEST ;\r\n Q:($SELECT(0)) foo \r\n"; 
+		String src = "TEST ;\r\n Q:($SELECT(0:n)) foo \r\n"; 
 		Routine routine = parseAndValidate(src); 
 		Command cmd = findFirstCommand(routine, QuitCommand.class);
 
@@ -1051,13 +1057,17 @@ public class BuiltinFunctionExpressionTest extends BaseTest {
 		assertEquals(1, func.getArgList().getArgList().size());
 
 		Arg arg0 = func.getArgList().getArgList().get(0);
-		assertNotNull(arg0);
-		assertNotNull(arg0.getExpression());
-
-		assertTrue(arg0.getExpression() instanceof NumericConstant);
-		
-		NumericConstant nconst = (NumericConstant)arg0.getExpression();
+		assertTrue(arg0 instanceof SelectArg);
+		SelectArg sarg0 = (SelectArg)arg0;
+		assertNotNull(sarg0.getExpression());
+		assertTrue(sarg0.getExpression() instanceof NumericConstant);
+		NumericConstant nconst = (NumericConstant)sarg0.getExpression();
 		assertEquals("0", nconst.getValue());
+		assertNotNull(sarg0.getOption());
+		assertTrue(sarg0.getOption() instanceof LocalVariableExpression);
+		LocalVariableExpression lve = (LocalVariableExpression)sarg0.getOption();
+		assertNull(lve.getArgList());
+		assertEquals("n", lve.getName());
 	}
 
 	@Test

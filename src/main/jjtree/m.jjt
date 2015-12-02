@@ -4,14 +4,14 @@ options {
 	STATIC = false;
 }
 
-PARSER_BEGIN(FooParser)
+PARSER_BEGIN(MParser)
 package com;
-import java.io.StringBufferInputStream;
+import java.io.*;
 import com.ast.*;
 import com.ast.command.*;
 import com.ast.expression.*;
 
-public class FooParser {
+public class MParser {
 	public static final String TEST_DATA = 
 	"XXROUTINE ;c\r\n"+
 	" ;comment\r\n"+
@@ -39,12 +39,21 @@ public class FooParser {
 	;
 
 	public static void main(String[] args) {
-		FooParser fp = new FooParser(new StringBufferInputStream(TEST_DATA));
+
+	    InputStream is = null;
+
+        if (args.length > 0)        {              File file = new File(args[0]);
+            try            {	            if (file.exists() && file.isFile())	            {	                is = new FileInputStream(args[0]);
+	            }
+	          }
+	          catch (FileNotFoundException e)	          {	            e.printStackTrace();
+	          }         }        else        {	       is = new StringBufferInputStream(TEST_DATA);
+	    }
+	    
+		MParser mp = new MParser(is);
 		
 		try {
-			SimpleNode parseTree = fp.routine();
-			// test comment
-			parseTree.dump("");
+			Routine result = mp.routine();
 			
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
@@ -86,7 +95,7 @@ public class FooParser {
 	
 }
 
-PARSER_END(FooParser)
+PARSER_END(MParser)
 
 
 // sql syntax
@@ -192,7 +201,7 @@ TOKEN : {
  | < DIGIT : ["0"-"9"] >
 }
 
-SimpleNode routine() : {
+Routine routine() : {
 Routine result = new Routine();
 LineList node1 = null;
 Token n1;
@@ -206,7 +215,7 @@ Token n1;
 		
 		parseResult = result;
 
-		return jjtThis; 
+		return result; 
 	}
 }
 
@@ -252,7 +261,7 @@ Token n1 = null;
 int indentation = 0;
 }
 {
-	( n1=label() )? " " ( ". " {indentation++;})* node1=linebody()
+	( n1=label() )? " " ( "." (" ")? {indentation++;})* node1=linebody()
 	{
 	    if (n1 != null) {
 	       result = new LabelLine(n1.toString());
@@ -1096,7 +1105,7 @@ Token n1;
 	    result.setExpression(new IndirectExpression(node1));
 		return result;
 	}
-	| n1=<NAME>
+	| n1=name()
 	{
 	    result.setExpression(new LocalVariableExpression(n1.toString(), null));
 	    return result;
@@ -1586,12 +1595,20 @@ Arg node2 = null;
 SetArg setatom() : {
 SetArg result = new SetArg();
 Expression node1 = null;
+Expression node3 = null;
 ArgList node2 = null;
 }
 {
-    "@" node1=expratom()
+  // TODO - grammar is ambiguous around "@H=1" being either a setatom() or a setdestination()
+    "@" node1=expratom() ( "=" node3=expr() )?
     {
-        result.setExpression(new IndirectExpression(node1));
+        if (node3 != null)
+        {
+            ArgList arglist = new ArgList();
+            arglist.add(new Arg(new IndirectExpression(node1)));            result.setLeft(arglist);
+            result.setRight(node3);
+        }        else {            result.setExpression(new IndirectExpression(node1));
+        }
         return result;
     }
 	| node2=setdestination() "=" node1=expr()
@@ -1922,7 +1939,6 @@ PostCondition node2 = null;
 }
 
 PostCondition postcond() : {
-SimpleNode node1 = null;
 Expression node2 = null;
 }
 {
@@ -1986,22 +2002,22 @@ Token n2 = null;
 {
 	 ( n2="\'" )? n1=relation() node2=expratom()
      {
-         String op = n2 == null ? n1.toString() : (n2.toString() + n1.toString());
+         String op = (n2 == null ? n1.toString() : (n2.toString() + n1.toString()));
          return new RelationExpression(op, null, node2);
      }
 	 | ( n2="\'" )? n1=logicalop() node2=expratom()
      {
-         String op = n2 == null ? n1.toString() : (n2.toString() + n1.toString());
+         String op = (n2 == null ? n1.toString() : (n2.toString() + n1.toString()));
          return new LogicalExpression(op, null, node2);
      }
-	 | ( n2="\'" )? n1="?" "."  // TODO- this is for  "'?pattern" 
+	 | ( n2="\'" )? n1="?" node2=pattern()
      {
-         String op = n2 == null ? n1.toString() : (n2.toString() + n1.toString());
-         return new MatchExpression(op, null, new StringConstant("pattern"));  // TODO - fix this pattern arg.
+         String op = (n2 == null ? n1.toString() : (n2.toString() + n1.toString()));
+         return new MatchExpression(op, null, node2);
      }
 	 | ( n2="\'" )? n1="?" "@" node2=expratom()    
 	 {
-         String op = n2 == null ? n1.toString() : (n2.toString() + n1.toString());
+         String op = (n2 == null ? n1.toString() : (n2.toString() + n1.toString()));
          return new MatchExpression(op, null, new IndirectExpression(node2)); 
      }
      | n1=binaryop() node2=expratom()
@@ -2009,6 +2025,48 @@ Token n2 = null;
          return new BinaryExpression(n1.toString(), null, node2);
      }
 }
+
+Expression pattern() : {
+Expression result = null;
+Token n1 = null;
+Token n2 = null;
+String str1 = null;
+StringBuffer buf = new StringBuffer();}
+{    ( str1=patternatom() {buf.append(str1);} )+
+    {
+        return new StringConstant(buf.toString(), false);    }
+}
+
+String patternatom() : {
+Token n1 = null;
+Token n2 = null;
+String str1 = null;
+StringBuffer buf = new StringBuffer();
+}
+{
+    ( n1=<NUMBER> )? "." ( n2=<NUMBER> )? str1=patternlit()
+    {
+        if (n1 != null) {
+            buf.append(n1.toString());
+        }
+        buf.append('.');
+        if (n2 != null) {
+            buf.append(n2.toString());
+        }
+        buf.append(str1);
+        return buf.toString();
+    }
+}
+
+String patternlit() : {
+Token n1 = null;}
+{
+    n1=<STRLIT>
+    {        return n1.toString();
+    }
+    | n1=name()
+	{ // TODO - if name() starts with Y or Z it must also end with Y or Z
+	    return n1.toString();	}}
 
 Expression glvn() : {
 Expression result = null;
@@ -2203,7 +2261,7 @@ ArgList node2 = null;
         result.setArgList(node2);
         return result;
 	}
-    | "^" n1=<F_SELECT> n2="(" ( node2=exprlist() )? ")"  // silly alias for "$S"
+    | "^" n1=<F_SELECT> n2="(" ( node2=selectexprlist() )? ")"  // silly alias for "$S"
     {
        if (!"$S".equals(n1.toString())) {
            throw new RuntimeException("Error parsing stuff");
@@ -2212,6 +2270,19 @@ ArgList node2 = null;
         result.setArgList(node2);
         return result;
     }
+}
+
+ArgList selectexprlist() : {ArgList result = new ArgList();
+Expression node1 = null;
+Expression node2 = null;
+Expression node3 = null;
+Expression node4 = null;
+}  
+{
+    node1=expr() ":" node3=expr() {result.add(new SelectArg(node1,node3));} ("," node2=expr() ":" node4=expr() {result.add(new SelectArg(node2, node4));} )*
+    {
+       return result;
+    } 
 }
 
 Expression function() : {
@@ -2325,7 +2396,7 @@ ArgList node2 = null;
         result.setArgList(node2);
         return result;
     }
-    | n1=<F_SELECT> n2="(" ( node2=exprlist() )? ")"
+    | n1=<F_SELECT> n2="(" ( node2=selectexprlist() )? ")"
     {
         result.setName("$SELECT");
         result.setArgList(node2);

@@ -1,6 +1,6 @@
 package com.ast;
 
-import com.FooParser;
+import com.MParser;
 
 import java.io.File;
 import java.io.InputStream;
@@ -25,7 +25,7 @@ public class ParserTest {
 			
 //			System.err.println("is = " + is);
 
-			FooParser fp = new FooParser(is);
+			MParser fp = new MParser(is);
 			fp.routine();
 		}
 	}

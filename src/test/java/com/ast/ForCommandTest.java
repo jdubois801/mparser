@@ -154,5 +154,19 @@ public class ForCommandTest extends BaseTest {
 		NumericConstant nconst = (NumericConstant)arg0.getExpression();
 		assertEquals("2", nconst.getValue());
 	}
+	
+	@Test
+	public void testEight() throws Exception {
+
+		String src = "TEST ;\r\n F G=S-Q:F:S+F+Q \r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, ForCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof ForCommand);
+		ForCommand cc = (ForCommand)cmd;
+		assertNull(cc.getPostCondition());
+		assertNotNull(cc.getDestination());
+	}
 }
 

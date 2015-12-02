@@ -7,6 +7,15 @@ public class StringConstant extends Expression {
 		setValue(value);
 	}
 	
+	public StringConstant(String value, boolean trim) {
+		if (trim) {
+			setValue(value);
+		}
+		else {
+			this.value = value;
+		}
+	}
+
 	public void setValue(String value) {
 		this.value = value;
 		

@@ -213,7 +213,7 @@ public class MergeCommandTest extends BaseTest {
 	@Test
 	public void testFive() throws Exception {
 
-		String src = "TEST ;\r\n M ^$S(3)=^bar(0) \r\n";
+		String src = "TEST ;\r\n M ^$S(1:3)=^bar(0) \r\n";
 		Routine routine = parseAndValidate(src); 
 		Command cmd = findFirstCommand(routine, MergeCommand.class);
 
@@ -239,7 +239,7 @@ public class MergeCommandTest extends BaseTest {
 		assertNotNull(arg1.getExpression());
 		assertTrue(arg1.getExpression() instanceof NumericConstant);
 		NumericConstant nconst = (NumericConstant)arg1.getExpression();
-		assertEquals("3", nconst.getValue());
+		assertEquals("1", nconst.getValue());
 		
 		assertNotNull(marg0.getExpression());
 		assertTrue(marg0.getExpression() instanceof GlobalVariableExpression);

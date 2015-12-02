@@ -929,5 +929,34 @@ public class SetCommandTest extends BaseTest {
 		NumericConstant nconst = (NumericConstant)sarg0.getRight();
 		assertEquals("0", nconst.getValue());
 	}
+	
+	@Test
+	public void testSeventeen() throws Exception {
+
+		String src = "TEST ;\r\n S @H=$S(@H<S:'Q,Q:N)_@H \r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, SetCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof SetCommand);
+		SetCommand cc = (SetCommand)cmd;
+		assertNull(cc.getPostCondition());
+		assertNotNull(cc.getArgList());
+	}
+	
+	@Test
+	public void testEighteen() throws Exception {
+
+		String src = "TEST ;\r\n S F(A,H('L))=C(H(W[(W/S))) \r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, SetCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof SetCommand);
+		SetCommand cc = (SetCommand)cmd;
+		assertNull(cc.getPostCondition());
+		assertNotNull(cc.getArgList());
+	}
+
 }
 

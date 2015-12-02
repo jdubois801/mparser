@@ -367,7 +367,7 @@ public class StructuredSystemVariableExpressionTest extends BaseTest {
 	@Test
 	public void testFortyFour() throws Exception {
 
-		String src = "TEST ;\r\n Q:(^$S(0)) foo \r\n"; 
+		String src = "TEST ;\r\n Q:(^$S(0:n,0:m,1:o)) foo \r\n"; 
 		Routine routine = parseAndValidate(src); 
 		Command cmd = findFirstCommand(routine, QuitCommand.class);
 
@@ -381,7 +381,7 @@ public class StructuredSystemVariableExpressionTest extends BaseTest {
 		assertEquals("$SYSTEM", ssvn.getName());
 		assertNotNull(ssvn.getArgList());
 		assertNotNull(ssvn.getArgList().getArgList());
-		assertEquals(1, ssvn.getArgList().getArgList().size());
+		assertEquals(3, ssvn.getArgList().getArgList().size());
 
 		Arg arg0 = ssvn.getArgList().getArgList().get(0);
 		assertNotNull(arg0);

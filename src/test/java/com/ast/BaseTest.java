@@ -4,7 +4,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.FooParser;
+import com.MParser;
 import com.ParseException;
 import com.ast.command.Command;
 import com.ast.command.CommandList;
@@ -65,7 +65,7 @@ public abstract class BaseTest {
 	}
 	
 	protected Routine parseAndValidate(String src) throws ParseException {
-		FooParser parser = new FooParser(new StringReader(src));
+		MParser parser = new MParser(new StringReader(src));
 		parser.routine();
 		Routine routine = parser.getParseResult();
 		
