@@ -168,7 +168,7 @@ TOKEN : {
 // identifiers
 TOKEN : {
    < NAME : ("%"|<LETTER>)(<LETTER>|<DIGIT>)* >  // not strictly correct since "%" isn't a valid name
-  | <STRLIT : "\"" (["a"-"z","A"-"Z","0"-"9","^"])* "\"" > 
+  | <STRLIT : "\"" (["!","#"-"~"])* "\"" > 
 }
 
 // lexical tokens
@@ -1479,10 +1479,9 @@ String str = null;
 	    result.setExpression(new IndirectExpression(node1));
 	    return result;
 	}
-    | n1=<STRLIT>
+    | str=contatenatedString()
     {
-        String strlit = n1.toString();
-        result.setLiteral(strlit.substring(1, strlit.length()-1));
+        result.setLiteral(str.substring(1, str.length()-1));
         return result;
     }
 	| "*" node1=glvn() ( " " node3=expr() )?
@@ -2025,6 +2024,7 @@ String str1 = null;
 StringBuffer buf = new StringBuffer();
 }
 {
+    LOOKAHEAD( 3 )
     ( n1=<NUMBER> )? "." ( n2=<NUMBER> )? str1=patternlit()
     {
         if (n1 != null) {
@@ -2037,17 +2037,31 @@ StringBuffer buf = new StringBuffer();
         buf.append(str1);
         return buf.toString();
     }
+    | n1=<NUMBER> str1=patternlit()
+    {
+        if (n1 != null) {
+            buf.append(n1.toString());
+        }
+        buf.append(str1);
+        return buf.toString();
+    }
+  
 }
 
 String patternlit() : {
-Token n1 = null;}
+Token n1 = null;
+Token n2 = null;
+String str = null;}
 {
-    n1=<STRLIT>
-    {        return n1.toString();
+    str=contatenatedString()
+    {        return str;
     }
-    | n1=name()
+    | (n2="'")? n1=name()    // TODO- nope! a single character, not a name() or YcharY, or ZcharZ
 	{ // TODO - if name() starts with Y or Z it must also end with Y or Z
-	    return n1.toString();	}}
+	    return (n2 != null?("'"+n1.toString()):n1.toString());	}
+    | "(" patternatom() ( "," patternatom() )* ")"
+    {  // TODO - implement the alternation        return "()";
+    }  }
 
 Expression glvn() : {
 Expression result = null;
@@ -2414,6 +2428,7 @@ Expression expritem() : {
 Expression result = null;
 Expression node1 = null;
 Token n1 = null;
+String str = null;
 }
 {
 // TODO - are all of these implemented?
@@ -2430,9 +2445,8 @@ Token n1 = null;
     {
         return new NumericConstant(n1.toString());
     }
-    | n1=<STRLIT>
-    {
-        return new StringConstant(n1.toString());
+    | str=contatenatedString()
+    {        return new StringConstant(str);
     }
     | n1=unaryop() node1=expratom()
     {
@@ -2445,6 +2459,14 @@ Token n1 = null;
     | node1=function()
     {
         return node1;
+    }
+}
+
+String contatenatedString() : {
+  Token n1 = null;
+  StringBuffer buf = null;}{    (n1=<STRLIT> {if(buf==null){buf=new StringBuffer();}buf.append('\"');buf.append(n1.toString());} )+
+    {   // cheating a little here by parsing <STRLIT>+ to allow the doubled quote char to escape a quote char
+        return buf.toString().replaceAll("\"\"\"","\"").substring(1);
     }
 }
 

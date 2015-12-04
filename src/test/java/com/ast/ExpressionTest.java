@@ -2,6 +2,7 @@ package com.ast;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -52,6 +53,40 @@ public class ExpressionTest extends BaseTest {
 	@Test
 	public void testThree() throws Exception {
 
+		String src = "TEST ;\r\n Q:\"!\"\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\" foo \r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, QuitCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof QuitCommand);
+		QuitCommand cc = (QuitCommand)cmd;
+		assertNotNull(cc.getPostCondition());
+		assertNotNull(cc.getPostCondition().getExpr());
+		assertTrue(cc.getPostCondition().getExpr() instanceof StringConstant);
+		StringConstant sconst = (StringConstant)cc.getPostCondition().getExpr();
+		assertEquals("!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~", sconst.getValue());
+	}
+	
+	@Test
+	public void testFour() throws Exception {
+		// double quotes escapes a quote char
+		String src = "TEST ;\r\n Q:\"\"\"ESCAPED\"\"QUOTE\"\"\" foo \r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, QuitCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof QuitCommand);
+		QuitCommand cc = (QuitCommand)cmd;
+		assertNotNull(cc.getPostCondition());
+		assertNotNull(cc.getPostCondition().getExpr());
+		assertTrue(cc.getPostCondition().getExpr() instanceof StringConstant);
+		StringConstant sconst = (StringConstant)cc.getPostCondition().getExpr();
+		assertEquals("\"ESCAPED\"QUOTE\"", sconst.getValue());
+	}
+	
+	@Test
+	public void testFive() throws Exception {
+
 		String src = "TEST ;\r\n Q:\"\" foo \r\n";
 		Routine routine = parseAndValidate(src); 
 		Command cmd = findFirstCommand(routine, QuitCommand.class);
@@ -66,4 +101,18 @@ public class ExpressionTest extends BaseTest {
 		assertEquals("", sconst.getValue());
 	}
 	
+	@Test
+	public void testSix() throws Exception {
+	
+		String src = "TEST ;\r\n Q $P(A4A7B(\"DIE\"),\",\") \r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, QuitCommand.class);
+	
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof QuitCommand);
+		QuitCommand cc = (QuitCommand)cmd;
+		assertNull(cc.getPostCondition());
+		assertNotNull(cc.getReturnExpression());
+	}
 }
+

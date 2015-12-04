@@ -300,4 +300,33 @@ public class MatchExpressionTest extends BaseTest {
 		StringConstant sconst = (StringConstant)mexpr.getPattern();
 		assertEquals("1.2ZaZ1.2YbY", sconst.getValue());
 	}
+	
+	@Test
+	public void testEleven() throws Exception {
+
+		String src = "TEST ;\r\n Q:(0?.N1\",0)\") foo \r\n";
+		Routine routine = parseAndValidate(src); 
+		Command cmd = findFirstCommand(routine, QuitCommand.class);
+
+		assertNotNull(cmd);
+		assertTrue(cmd instanceof QuitCommand);
+		QuitCommand cc = (QuitCommand)cmd;
+		assertNotNull(cc.getPostCondition());
+		assertNotNull(cc.getPostCondition().getExpr());
+		assertTrue(cc.getPostCondition().getExpr() instanceof MatchExpression);
+		MatchExpression mexpr = (MatchExpression)cc.getPostCondition().getExpr();
+		assertEquals("?", mexpr.getOperator());
+		
+		assertNotNull(mexpr.getLeftExpression());
+		assertTrue(mexpr.getLeftExpression() instanceof NumericConstant);
+		NumericConstant nconst = (NumericConstant)mexpr.getLeftExpression();
+		assertEquals("0", nconst.getValue());
+		
+		assertNotNull(mexpr.getPattern());
+		assertTrue(mexpr.getPattern() instanceof StringConstant);
+		StringConstant sconst = (StringConstant)mexpr.getPattern();
+		assertEquals(".E", sconst.getValue());
+	}
+	
+	
 }
